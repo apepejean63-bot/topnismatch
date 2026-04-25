@@ -4,6 +4,7 @@ import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/create_profile_screen.dart';
 
 void main() {
   runApp(const TopnisMatchApp());
@@ -28,6 +29,7 @@ class TopnisMatchApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),
+          '/create-profile': (context) => const CreateProfileScreen(),
         },
       ),
     );
