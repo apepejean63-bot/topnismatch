@@ -122,4 +122,8 @@ class ApiService {
     final token = await _storage.read(key: 'jwt_token');
     return token != null;
   }
+
+  Future<void> marcarComoLeido(int matchId) async {
+    await _dio.put('/messages/$matchId/read');
+  }
 }

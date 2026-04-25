@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import 'chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -152,7 +153,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Stack(
                 children: [
-                  // Foto
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
@@ -183,7 +183,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                   ),
-                  // Info
                   Positioned(
                     bottom: 0,
                     left: 0,
@@ -236,20 +235,17 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        // Botones
         Padding(
           padding: const EdgeInsets.only(bottom: 24.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Dislike
               FloatingActionButton(
                 heroTag: 'dislike',
                 onPressed: () => _darDislike(perfil['usuarioId']),
                 backgroundColor: Colors.white,
                 child: const Icon(Icons.close, color: Colors.red, size: 36),
               ),
-              // Like
               FloatingActionButton.large(
                 heroTag: 'like',
                 onPressed: () => _darLike(perfil['usuarioId']),
@@ -260,7 +256,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: 48,
                 ),
               ),
-              // Superlike
               FloatingActionButton(
                 heroTag: 'superlike',
                 onPressed: () async {
@@ -322,7 +317,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 trailing: const Icon(Icons.chat, color: Color(0xFFFF4458)),
                 onTap: () {
-                  // Navegar al chat
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatScreen(
+                        matchId: match['matchId'],
+                        otroUsuarioNombre: match['otroUsuarioNombre'],
+                      ),
+                    ),
+                  );
                 },
               ),
             );

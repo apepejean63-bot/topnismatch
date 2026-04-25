@@ -34,16 +34,34 @@ public class ChatService {
             throw new RuntimeException("Match no encontrado o no tienes acceso");
         }
 
-        // Verificar que no esté bloqueado
-        List<Object> bloqueo = entityManager.createNativeQuery(
-                        "SELECT bloqueo_id FROM BLOQUEO " +
-                                "WHERE usuario_bloqueador = :userId " +
-                                "OR usuario_bloqueado = :userId")
-                .setParameter("userId", emisorId)
+        // Obtener el otro usuario del match
+        List<Object[]> matchInfo = entityManager.createNativeQuery(
+                        "SELECT usuario1_id, usuario2_id FROM MATCH_TOPNIS " +
+                                "WHERE match_id = :matchId")
+                .setParameter("matchId", matchId)
                 .getResultList();
 
-        if (!bloqueo.isEmpty()) {
-            throw new RuntimeException("No puedes enviar mensajes a este usuario");
+        Long otroUsuarioId = null;
+        if (!matchInfo.isEmpty()) {
+            Object[] row = matchInfo.get(0);
+            Long u1 = ((Number) row[0]).longValue();
+            Long u2 = ((Number) row[1]).longValue();
+            otroUsuarioId = u1.equals(emisorId) ? u2 : u1;
+        }
+
+        // Verificar bloqueo entre los dos usuarios del match
+        if (otroUsuarioId != null) {
+            List<Object> bloqueo = entityManager.createNativeQuery(
+                            "SELECT bloqueo_id FROM BLOQUEO " +
+                                    "WHERE (usuario_bloqueador = :userId AND usuario_bloqueado = :otroId) " +
+                                    "OR (usuario_bloqueador = :otroId AND usuario_bloqueado = :userId)")
+                    .setParameter("userId", emisorId)
+                    .setParameter("otroId", otroUsuarioId)
+                    .getResultList();
+
+            if (!bloqueo.isEmpty()) {
+                throw new RuntimeException("No puedes enviar mensajes a este usuario");
+            }
         }
 
         // Crear mensaje
@@ -58,13 +76,11 @@ public class ChatService {
         entityManager.flush();
 
         String emisorNombre = obtenerNombreUsuario(emisorId);
-
         return buildMensajeResponse(mensaje, emisorNombre);
     }
 
     public List<MensajeResponse> obtenerHistorial(Long matchId, Long usuarioId) {
 
-        // Verificar acceso al match
         List<Object> match = entityManager.createNativeQuery(
                         "SELECT match_id FROM MATCH_TOPNIS " +
                                 "WHERE match_id = :matchId " +
@@ -92,7 +108,6 @@ public class ChatService {
     @Transactional
     public void marcarComoLeido(Long matchId, Long usuarioId) {
 
-        // Verificar acceso
         List<Object> match = entityManager.createNativeQuery(
                         "SELECT match_id FROM MATCH_TOPNIS " +
                                 "WHERE match_id = :matchId " +
@@ -105,7 +120,6 @@ public class ChatService {
             throw new RuntimeException("Match no encontrado o no tienes acceso");
         }
 
-        // Marcar como leido los mensajes del otro usuario
         entityManager.createNativeQuery(
                         "UPDATE MENSAJE SET estado = 'LEIDO' " +
                                 "WHERE match_id = :matchId " +
@@ -119,7 +133,6 @@ public class ChatService {
     @Transactional
     public void bloquearUsuario(Long usuarioBloqueadorId, Long usuarioBloqueadoId) {
 
-        // Verificar que no exista ya un bloqueo
         List<Object> existente = entityManager.createNativeQuery(
                         "SELECT bloqueo_id FROM BLOQUEO " +
                                 "WHERE usuario_bloqueador = :bloqueador " +
@@ -132,7 +145,6 @@ public class ChatService {
             throw new RuntimeException("Ya bloqueaste a este usuario");
         }
 
-        // Crear bloqueo
         entityManager.createNativeQuery(
                         "INSERT INTO BLOQUEO (bloqueo_id, usuario_bloqueador, usuario_bloqueado) " +
                                 "VALUES (SEQ_BLOQUEO_ID.NEXTVAL, :bloqueador, :bloqueado)")
@@ -140,7 +152,6 @@ public class ChatService {
                 .setParameter("bloqueado", usuarioBloqueadoId)
                 .executeUpdate();
 
-        // Desactivar match si existe
         entityManager.createNativeQuery(
                         "UPDATE MATCH_TOPNIS SET activo = 0 " +
                                 "WHERE (usuario1_id = :u1 AND usuario2_id = :u2) " +
