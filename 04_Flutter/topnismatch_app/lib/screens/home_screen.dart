@@ -11,11 +11,17 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final ApiService _api = ApiService();
   List<dynamic> _perfiles = [];
   bool _isLoading = true;
+
+  // Swipe animation
+  double _dragX = 0;
+  double _dragY = 0;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -55,9 +61,17 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
       }
-      setState(() => _perfiles.removeAt(0));
+      setState(() {
+        _perfiles.removeAt(0);
+        _dragX = 0;
+        _dragY = 0;
+      });
     } catch (e) {
-      setState(() => _perfiles.removeAt(0));
+      setState(() {
+        _perfiles.removeAt(0);
+        _dragX = 0;
+        _dragY = 0;
+      });
     }
   }
 
@@ -67,7 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       // ignore
     }
-    setState(() => _perfiles.removeAt(0));
+    setState(() {
+      _perfiles.removeAt(0);
+      _dragX = 0;
+      _dragY = 0;
+    });
   }
 
   @override
@@ -125,15 +143,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (_perfiles.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off, size: 80, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
+            const Icon(Icons.search_off, size: 80, color: Colors.grey),
+            const SizedBox(height: 16),
+            const Text(
               'No hay más perfiles por ahora',
               style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _cargarPerfiles,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF4458),
+              ),
+              child: const Text(
+                'Recargar',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -141,100 +170,205 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final perfil = _perfiles[0];
+    final screenWidth = MediaQuery.of(context).size.width;
+    final angle = _dragX / screenWidth * 0.4;
+    final isLiking = _dragX > 50;
+    final isDisliking = _dragX < -50;
+
     return Column(
       children: [
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Card(
-              elevation: 8,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.grey[300],
-                    ),
-                    child: perfil['fotoPrincipalUrl'] != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Image.network(
-                              perfil['fotoPrincipalUrl'],
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
-                              errorBuilder: (_, __, ___) => const Center(
-                                child: Icon(
-                                  Icons.person,
-                                  size: 100,
-                                  color: Colors.grey,
+            child: GestureDetector(
+              onPanStart: (_) => setState(() => _isDragging = true),
+              onPanUpdate: (details) {
+                setState(() {
+                  _dragX += details.delta.dx;
+                  _dragY += details.delta.dy;
+                });
+              },
+              onPanEnd: (_) {
+                if (_dragX > 100) {
+                  _darLike(perfil['usuarioId']);
+                } else if (_dragX < -100) {
+                  _darDislike(perfil['usuarioId']);
+                } else {
+                  setState(() {
+                    _dragX = 0;
+                    _dragY = 0;
+                    _isDragging = false;
+                  });
+                }
+              },
+              child: Transform(
+                transform: Matrix4.identity()
+                  ..translate(_dragX, _dragY)
+                  ..rotateZ(angle),
+                alignment: Alignment.bottomCenter,
+                child: Stack(
+                  children: [
+                    Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Stack(
+                        children: [
+                          // Foto
+                          Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.grey[300],
+                            ),
+                            child: perfil['fotoPrincipalUrl'] != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Image.network(
+                                      perfil['fotoPrincipalUrl'],
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) =>
+                                          const Center(
+                                            child: Icon(
+                                              Icons.person,
+                                              size: 100,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 100,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                          ),
+                          // Info
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(20),
+                                  bottomRight: Radius.circular(20),
+                                ),
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    Colors.black.withOpacity(0.8),
+                                    Colors.transparent,
+                                  ],
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${perfil['nombre']}, ${perfil['edad']}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  if (perfil['ciudad'] != null)
+                                    Text(
+                                      '📍 ${perfil['ciudad']}',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  if (perfil['bio'] != null)
+                                    Text(
+                                      perfil['bio'],
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // LIKE overlay
+                          if (isLiking)
+                            Positioned(
+                              top: 30,
+                              left: 20,
+                              child: Transform.rotate(
+                                angle: -0.3,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.green,
+                                      width: 4,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'LIKE',
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          )
-                        : const Center(
-                            child: Icon(
-                              Icons.person,
-                              size: 100,
-                              color: Colors.grey,
-                            ),
-                          ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(20),
-                          bottomRight: Radius.circular(20),
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [
-                            Colors.black.withOpacity(0.8),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${perfil['nombre']}, ${perfil['edad']}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (perfil['ciudad'] != null)
-                            Text(
-                              '📍 ${perfil['ciudad']}',
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                          if (perfil['bio'] != null)
-                            Text(
-                              perfil['bio'],
-                              style: const TextStyle(color: Colors.white70),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                          // NOPE overlay
+                          if (isDisliking)
+                            Positioned(
+                              top: 30,
+                              right: 20,
+                              child: Transform.rotate(
+                                angle: 0.3,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.red,
+                                      width: 4,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'NOPE',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
+        // Botones
         Padding(
           padding: const EdgeInsets.only(bottom: 24.0),
           child: Row(
@@ -260,7 +394,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 heroTag: 'superlike',
                 onPressed: () async {
                   await _api.darDislike(perfil['usuarioId']);
-                  setState(() => _perfiles.removeAt(0));
+                  setState(() {
+                    _perfiles.removeAt(0);
+                    _dragX = 0;
+                    _dragY = 0;
+                  });
                 },
                 backgroundColor: Colors.white,
                 child: const Icon(Icons.star, color: Colors.blue, size: 36),
@@ -380,7 +518,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(perfil['email'] ?? ''),
               const SizedBox(height: 24),
               _buildInfoCard('Bio', perfil['bio'] ?? 'Sin bio'),
               _buildInfoCard('Ciudad', perfil['ciudad'] ?? 'Sin ciudad'),
