@@ -16,24 +16,24 @@ import java.time.LocalDateTime;
 public class Foto {
 
     @Id
-    @Column(name = "FOTO_ID")
+    @Column(name = "foto_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
             generator = "seq_foto")
     @SequenceGenerator(name = "seq_foto",
-            sequenceName = "SEQ_FOTO_ID",
+            sequenceName = "seq_foto_id",
             allocationSize = 1)
     private Long fotoId;
 
-    @Column(name = "USUARIO_ID", nullable = false)
+    @Column(name = "usuario_id", nullable = false)
     private Long usuarioId;
 
-    @Column(name = "URL", nullable = false, length = 500)
+    @Column(name = "url", nullable = false, length = 500)
     private String url;
 
-    @Column(name = "ORDEN", nullable = false)
+    @Column(name = "orden", nullable = false)
     private Integer orden;
 
     @CreationTimestamp
-    @Column(name = "FECHA_SUBIDA", nullable = false, updatable = false)
+    @Column(name = "fecha_subida", nullable = false, updatable = false)
     private LocalDateTime fechaSubida;
 }

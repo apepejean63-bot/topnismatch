@@ -21,7 +21,6 @@ public class ChatService {
     @Transactional
     public MensajeResponse enviarMensaje(Long matchId, Long emisorId,
                                          MensajeRequest request) {
-        // Verificar que el match existe y está activo
         List<Object> match = entityManager.createNativeQuery(
                         "SELECT match_id FROM MATCH_TOPNIS " +
                                 "WHERE match_id = :matchId AND activo = 1 " +
@@ -34,7 +33,6 @@ public class ChatService {
             throw new RuntimeException("Match no encontrado o no tienes acceso");
         }
 
-        // Obtener el otro usuario del match
         List<Object[]> matchInfo = entityManager.createNativeQuery(
                         "SELECT usuario1_id, usuario2_id FROM MATCH_TOPNIS " +
                                 "WHERE match_id = :matchId")
@@ -49,7 +47,6 @@ public class ChatService {
             otroUsuarioId = u1.equals(emisorId) ? u2 : u1;
         }
 
-        // Verificar bloqueo entre los dos usuarios del match
         if (otroUsuarioId != null) {
             List<Object> bloqueo = entityManager.createNativeQuery(
                             "SELECT bloqueo_id FROM BLOQUEO " +
@@ -64,7 +61,6 @@ public class ChatService {
             }
         }
 
-        // Crear mensaje
         Mensaje mensaje = Mensaje.builder()
                 .matchId(matchId)
                 .emisorId(emisorId)
@@ -147,7 +143,7 @@ public class ChatService {
 
         entityManager.createNativeQuery(
                         "INSERT INTO BLOQUEO (bloqueo_id, usuario_bloqueador, usuario_bloqueado) " +
-                                "VALUES (SEQ_BLOQUEO_ID.NEXTVAL, :bloqueador, :bloqueado)")
+                                "VALUES (NEXTVAL('seq_bloqueo_id'), :bloqueador, :bloqueado)")
                 .setParameter("bloqueador", usuarioBloqueadorId)
                 .setParameter("bloqueado", usuarioBloqueadoId)
                 .executeUpdate();
@@ -168,7 +164,7 @@ public class ChatService {
         entityManager.createNativeQuery(
                         "INSERT INTO REPORTE (reporte_id, usuario_denunciante, usuario_denunciado, " +
                                 "categoria, descripcion, estado) " +
-                                "VALUES (SEQ_REPORTE_ID.NEXTVAL, :denunciante, :denunciado, " +
+                                "VALUES (NEXTVAL('seq_reporte_id'), :denunciante, :denunciado, " +
                                 ":categoria, :descripcion, 'PENDIENTE')")
                 .setParameter("denunciante", denuncianteId)
                 .setParameter("denunciado", denunciadoId)

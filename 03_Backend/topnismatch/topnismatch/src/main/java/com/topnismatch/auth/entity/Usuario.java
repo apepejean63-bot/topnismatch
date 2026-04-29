@@ -18,43 +18,43 @@ import java.time.LocalDateTime;
 public class Usuario {
 
     @Id
-    @Column(name = "USUARIO_ID")
+    @Column(name = "usuario_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
-                    generator = "seq_usuario")
+            generator = "seq_usuario")
     @SequenceGenerator(name = "seq_usuario",
-                       sequenceName = "SEQ_USUARIO_ID",
-                       allocationSize = 1)
+            sequenceName = "seq_usuario_id",
+            allocationSize = 1)
     private Long usuarioId;
 
-    @Column(name = "NOMBRE", nullable = false, length = 100)
+    @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
-    @Column(name = "EMAIL", nullable = false, unique = true, length = 150)
+    @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(name = "PASSWORD_HASH", nullable = false, length = 255)
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    @Column(name = "FECHA_NACIMIENTO", nullable = false)
+    @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fechaNacimiento;
 
-    @Column(name = "GENERO", nullable = false, length = 20)
+    @Column(name = "genero", nullable = false, length = 20)
     private String genero;
 
-    @Column(name = "ROL", nullable = false, length = 10)
+    @Column(name = "rol", nullable = false, length = 10)
     private String rol;
 
-    @Column(name = "ACTIVO", nullable = false)
+    @Column(name = "activo", nullable = false)
     private Integer activo;
 
-    @Column(name = "EMAIL_VERIFICADO", nullable = false)
+    @Column(name = "email_verificado", nullable = false)
     private Integer emailVerificado;
 
     @CreationTimestamp
-    @Column(name = "FECHA_REGISTRO", nullable = false, updatable = false)
+    @Column(name = "fecha_registro", nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;
 
     @UpdateTimestamp
-    @Column(name = "FECHA_ACTUALIZACION", nullable = false)
+    @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 }

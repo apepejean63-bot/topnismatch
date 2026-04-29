@@ -42,13 +42,11 @@ public class PremiumService {
         LocalDateTime fechaFin = row[3] != null ?
                 ((java.sql.Timestamp) row[3]).toLocalDateTime() : null;
 
-        // Verificar si expiró
         boolean esPremium = false;
         long diasRestantes = 0;
 
         if (!plan.equals("GRATUITO") && fechaFin != null) {
             if (LocalDateTime.now().isAfter(fechaFin)) {
-                // Expiró — degradar a GRATUITO
                 degradarAGratuito(usuarioId);
                 plan = "GRATUITO";
                 esPremium = false;
@@ -74,16 +72,14 @@ public class PremiumService {
 
         int dias = request.getPlan().equals("PREMIUM_MENSUAL") ? 30 : 365;
 
-        // Verificar si ya tiene premium activo
         List<Object[]> premiumActivo = entityManager.createNativeQuery(
                         "SELECT suscripcion_id, fecha_fin FROM SUSCRIPCION " +
                                 "WHERE usuario_id = :userId AND activo = 1 " +
-                                "AND plan != 'GRATUITO' AND fecha_fin > SYSTIMESTAMP")
+                                "AND plan != 'GRATUITO' AND fecha_fin > NOW()")
                 .setParameter("userId", usuarioId)
                 .getResultList();
 
         if (!premiumActivo.isEmpty()) {
-            // Extender suscripción existente
             Object[] row = premiumActivo.get(0);
             Long suscripcionId = ((Number) row[0]).longValue();
             LocalDateTime fechaFinActual = ((java.sql.Timestamp) row[1]).toLocalDateTime();
@@ -98,27 +94,24 @@ public class PremiumService {
                     .setParameter("id", suscripcionId)
                     .executeUpdate();
         } else {
-            // Desactivar suscripción gratuita
             entityManager.createNativeQuery(
                             "UPDATE SUSCRIPCION SET activo = 0 " +
                                     "WHERE usuario_id = :userId AND activo = 1")
                     .setParameter("userId", usuarioId)
                     .executeUpdate();
 
-            // Crear nueva suscripción premium
             LocalDateTime fechaFin = LocalDateTime.now().plusDays(dias);
             entityManager.createNativeQuery(
                             "INSERT INTO SUSCRIPCION (suscripcion_id, usuario_id, plan, " +
                                     "fecha_inicio, fecha_fin, activo, recibo_store) " +
-                                    "VALUES (SEQ_SUSCRIPCION_ID.NEXTVAL, :userId, :plan, " +
-                                    "SYSTIMESTAMP, :fechaFin, 1, :recibo)")
+                                    "VALUES (NEXTVAL('seq_suscripcion_id'), :userId, :plan, " +
+                                    "NOW(), :fechaFin, 1, :recibo)")
                     .setParameter("userId", usuarioId)
                     .setParameter("plan", request.getPlan())
                     .setParameter("fechaFin", fechaFin)
                     .setParameter("recibo", request.getReciboStore())
                     .executeUpdate();
 
-            // Actualizar rol del usuario
             entityManager.createNativeQuery(
                             "UPDATE USUARIO SET rol = 'PREMIUM' WHERE usuario_id = :userId")
                     .setParameter("userId", usuarioId)
@@ -131,19 +124,17 @@ public class PremiumService {
     @Transactional
     public BoostResponse activarBoost(Long usuarioId) {
 
-        // Verificar que es premium
         if (!isUserPremium(usuarioId)) {
             throw new RuntimeException("Solo usuarios Premium pueden activar boost");
         }
 
-        // Verificar límite semanal
         String plan = obtenerPlan(usuarioId);
         int limiteSemanal = plan.equals("PREMIUM_ANUAL") ? 2 : 1;
 
         List<Object> boostsSemana = entityManager.createNativeQuery(
                         "SELECT boost_id FROM BOOST_HISTORIAL " +
                                 "WHERE usuario_id = :userId " +
-                                "AND fecha_activacion >= TRUNC(SYSDATE, 'IW')")
+                                "AND fecha_activacion >= DATE_TRUNC('week', NOW())")
                 .setParameter("userId", usuarioId)
                 .getResultList();
 
@@ -151,11 +142,10 @@ public class PremiumService {
             throw new RuntimeException("Has alcanzado el limite de boosts semanales");
         }
 
-        // Verificar que no hay boost activo
         List<Object> boostActivo = entityManager.createNativeQuery(
                         "SELECT boost_id FROM BOOST_HISTORIAL " +
                                 "WHERE usuario_id = :userId AND activo = 1 " +
-                                "AND fecha_fin > SYSTIMESTAMP")
+                                "AND fecha_fin > NOW()")
                 .setParameter("userId", usuarioId)
                 .getResultList();
 
@@ -163,17 +153,16 @@ public class PremiumService {
             throw new RuntimeException("Ya tienes un boost activo");
         }
 
-        // Crear boost
         entityManager.createNativeQuery(
                         "INSERT INTO BOOST_HISTORIAL (boost_id, usuario_id, fecha_fin, activo) " +
-                                "VALUES (SEQ_BOOST_ID.NEXTVAL, :userId, " +
-                                "SYSTIMESTAMP + INTERVAL '30' MINUTE, 1)")
+                                "VALUES (NEXTVAL('seq_boost_id'), :userId, " +
+                                "NOW() + INTERVAL '30 minutes', 1)")
                 .setParameter("userId", usuarioId)
                 .executeUpdate();
 
         List<Object[]> boostCreado = entityManager.createNativeQuery(
                         "SELECT boost_id, fecha_activacion, fecha_fin FROM BOOST_HISTORIAL " +
-                                "WHERE usuario_id = :userId ORDER BY boost_id DESC FETCH FIRST 1 ROWS ONLY")
+                                "WHERE usuario_id = :userId ORDER BY boost_id DESC LIMIT 1")
                 .setParameter("userId", usuarioId)
                 .getResultList();
 
@@ -261,7 +250,7 @@ public class PremiumService {
         List<Object> resultados = entityManager.createNativeQuery(
                         "SELECT suscripcion_id FROM SUSCRIPCION " +
                                 "WHERE usuario_id = :userId AND activo = 1 " +
-                                "AND plan != 'GRATUITO' AND fecha_fin > SYSTIMESTAMP")
+                                "AND plan != 'GRATUITO' AND fecha_fin > NOW()")
                 .setParameter("userId", usuarioId)
                 .getResultList();
         return !resultados.isEmpty();
@@ -286,7 +275,7 @@ public class PremiumService {
 
         entityManager.createNativeQuery(
                         "INSERT INTO SUSCRIPCION (suscripcion_id, usuario_id, plan, activo) " +
-                                "VALUES (SEQ_SUSCRIPCION_ID.NEXTVAL, :userId, 'GRATUITO', 1)")
+                                "VALUES (NEXTVAL('seq_suscripcion_id'), :userId, 'GRATUITO', 1)")
                 .setParameter("userId", usuarioId)
                 .executeUpdate();
 

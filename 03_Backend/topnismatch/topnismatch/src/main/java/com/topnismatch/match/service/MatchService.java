@@ -40,10 +40,7 @@ public class MatchService {
             Double compatibilidad = ((Number) row[3]).doubleValue();
             LocalDateTime fechaMatch = ((java.sql.Timestamp) row[4]).toLocalDateTime();
 
-            // Determinar el otro usuario
             Long otroUsuarioId = usuario1Id.equals(usuarioId) ? usuario2Id : usuario1Id;
-
-            // Obtener info del otro usuario
             String nombre = obtenerNombreUsuario(otroUsuarioId);
             String fotoUrl = obtenerFotoPrincipalUrl(otroUsuarioId);
 
@@ -113,7 +110,6 @@ public class MatchService {
             throw new RuntimeException("Match no encontrado o no tienes acceso");
         }
 
-        // Soft delete
         entityManager.createNativeQuery(
                         "UPDATE MATCH_TOPNIS SET activo = 0 WHERE match_id = :matchId")
                 .setParameter("matchId", matchId)

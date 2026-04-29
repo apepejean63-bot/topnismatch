@@ -28,14 +28,14 @@ public class AdminService {
                 "SELECT COUNT(*) FROM USUARIO WHERE activo = 1").getSingleResult()).longValue();
 
         Long usuariosHoy = ((Number) entityManager.createNativeQuery(
-                        "SELECT COUNT(*) FROM USUARIO WHERE TRUNC(fecha_registro) = TRUNC(SYSDATE)")
+                        "SELECT COUNT(*) FROM USUARIO WHERE DATE(fecha_registro) = CURRENT_DATE")
                 .getSingleResult()).longValue();
 
         Long matchesTotales = ((Number) entityManager.createNativeQuery(
                 "SELECT COUNT(*) FROM MATCH_TOPNIS").getSingleResult()).longValue();
 
         Long matchesHoy = ((Number) entityManager.createNativeQuery(
-                        "SELECT COUNT(*) FROM MATCH_TOPNIS WHERE TRUNC(fecha_match) = TRUNC(SYSDATE)")
+                        "SELECT COUNT(*) FROM MATCH_TOPNIS WHERE DATE(fecha_match) = CURRENT_DATE")
                 .getSingleResult()).longValue();
 
         Long mensajesTotales = ((Number) entityManager.createNativeQuery(
@@ -43,7 +43,7 @@ public class AdminService {
 
         Long suscripcionesPremium = ((Number) entityManager.createNativeQuery(
                 "SELECT COUNT(*) FROM SUSCRIPCION WHERE plan != 'GRATUITO' AND activo = 1 " +
-                        "AND fecha_fin > SYSTIMESTAMP").getSingleResult()).longValue();
+                        "AND fecha_fin > NOW()").getSingleResult()).longValue();
 
         Long reportesPendientes = ((Number) entityManager.createNativeQuery(
                         "SELECT COUNT(*) FROM REPORTE WHERE estado = 'PENDIENTE'")
@@ -67,8 +67,8 @@ public class AdminService {
         List<Object[]> resultados = entityManager.createNativeQuery(
                         "SELECT u.usuario_id, u.nombre, u.email, u.rol, u.activo, " +
                                 "u.email_verificado, u.fecha_registro, " +
-                                "NVL((SELECT s.plan FROM SUSCRIPCION s WHERE s.usuario_id = u.usuario_id " +
-                                "AND s.activo = 1), 'GRATUITO') as plan " +
+                                "COALESCE((SELECT s.plan FROM SUSCRIPCION s WHERE s.usuario_id = u.usuario_id " +
+                                "AND s.activo = 1 LIMIT 1), 'GRATUITO') as plan " +
                                 "FROM USUARIO u ORDER BY u.fecha_registro DESC")
                 .getResultList();
 
@@ -102,8 +102,8 @@ public class AdminService {
         List<Object[]> resultados = entityManager.createNativeQuery(
                         "SELECT u.usuario_id, u.nombre, u.email, u.rol, u.activo, " +
                                 "u.email_verificado, u.fecha_registro, " +
-                                "NVL((SELECT s.plan FROM SUSCRIPCION s WHERE s.usuario_id = u.usuario_id " +
-                                "AND s.activo = 1), 'GRATUITO') as plan " +
+                                "COALESCE((SELECT s.plan FROM SUSCRIPCION s WHERE s.usuario_id = u.usuario_id " +
+                                "AND s.activo = 1 LIMIT 1), 'GRATUITO') as plan " +
                                 "FROM USUARIO u WHERE u.usuario_id = :userId")
                 .setParameter("userId", usuarioId)
                 .getResultList();

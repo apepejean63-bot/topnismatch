@@ -21,7 +21,6 @@ public class ProfileService {
     @Transactional
     public ProfileResponse crearPerfil(Long usuarioId, ProfileRequest request) {
 
-        // Verificar que no exista ya un perfil
         Long count = entityManager.createQuery(
                         "SELECT COUNT(p) FROM Perfil p WHERE p.usuarioId = :userId",
                         Long.class)
@@ -112,7 +111,6 @@ public class ProfileService {
     @Transactional
     public FotoResponse agregarFoto(Long usuarioId, FotoRequest request) {
 
-        // Verificar max 6 fotos
         Long count = entityManager.createQuery(
                         "SELECT COUNT(f) FROM Foto f WHERE f.usuarioId = :userId",
                         Long.class)
@@ -123,7 +121,6 @@ public class ProfileService {
             throw new RuntimeException("Maximo 6 fotos permitidas");
         }
 
-        // Verificar que el orden no esté ocupado
         List<Foto> fotosConOrden = entityManager.createQuery(
                         "SELECT f FROM Foto f WHERE f.usuarioId = :userId AND f.orden = :orden",
                         Foto.class)
@@ -144,7 +141,6 @@ public class ProfileService {
         entityManager.persist(foto);
         entityManager.flush();
 
-        // Si es orden 1 actualizar foto_principal_id en perfil
         if (request.getOrden() == 1) {
             entityManager.createNativeQuery(
                             "UPDATE PERFIL SET foto_principal_id = :fotoId WHERE usuario_id = :userId")
@@ -176,7 +172,6 @@ public class ProfileService {
 
         Foto foto = fotos.get(0);
 
-        // Si es foto principal limpiar referencia en perfil
         if (orden == 1) {
             entityManager.createNativeQuery(
                             "UPDATE PERFIL SET foto_principal_id = NULL WHERE usuario_id = :userId")
@@ -189,7 +184,6 @@ public class ProfileService {
 
     private ProfileResponse buildProfileResponse(Perfil perfil, Long usuarioId) {
 
-        // Obtener nombre del usuario
         List<String> nombres = entityManager.createQuery(
                         "SELECT u.nombre FROM Usuario u WHERE u.usuarioId = :userId",
                         String.class)
@@ -198,7 +192,6 @@ public class ProfileService {
 
         String nombre = nombres.isEmpty() ? "" : nombres.get(0);
 
-        // Obtener fotos
         List<Foto> fotos = entityManager.createQuery(
                         "SELECT f FROM Foto f WHERE f.usuarioId = :userId ORDER BY f.orden",
                         Foto.class)

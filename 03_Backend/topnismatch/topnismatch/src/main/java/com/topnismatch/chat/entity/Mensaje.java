@@ -16,30 +16,30 @@ import java.time.LocalDateTime;
 public class Mensaje {
 
     @Id
-    @Column(name = "MENSAJE_ID")
+    @Column(name = "mensaje_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
             generator = "seq_mensaje")
     @SequenceGenerator(name = "seq_mensaje",
-            sequenceName = "SEQ_MENSAJE_ID",
+            sequenceName = "seq_mensaje_id",
             allocationSize = 1)
     private Long mensajeId;
 
-    @Column(name = "MATCH_ID", nullable = false)
+    @Column(name = "match_id", nullable = false)
     private Long matchId;
 
-    @Column(name = "EMISOR_ID", nullable = false)
+    @Column(name = "emisor_id", nullable = false)
     private Long emisorId;
 
-    @Column(name = "CONTENIDO", nullable = false, length = 1000)
+    @Column(name = "contenido", nullable = false, length = 1000)
     private String contenido;
 
-    @Column(name = "ESTADO", nullable = false, length = 10)
+    @Column(name = "estado", nullable = false, length = 10)
     private String estado;
 
     @CreationTimestamp
-    @Column(name = "FECHA_ENVIO", nullable = false, updatable = false)
+    @Column(name = "fecha_envio", nullable = false, updatable = false)
     private LocalDateTime fechaEnvio;
 
-    @Column(name = "FECHA_LEIDO")
+    @Column(name = "fecha_leido")
     private LocalDateTime fechaLeido;
 }

@@ -16,45 +16,45 @@ import java.time.LocalDateTime;
 public class Perfil {
 
     @Id
-    @Column(name = "PERFIL_ID")
+    @Column(name = "perfil_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
             generator = "seq_perfil")
     @SequenceGenerator(name = "seq_perfil",
-            sequenceName = "SEQ_PERFIL_ID",
+            sequenceName = "seq_perfil_id",
             allocationSize = 1)
     private Long perfilId;
 
-    @Column(name = "USUARIO_ID", nullable = false, unique = true)
+    @Column(name = "usuario_id", nullable = false, unique = true)
     private Long usuarioId;
 
-    @Column(name = "BIO", length = 500)
+    @Column(name = "bio", length = 500)
     private String bio;
 
-    @Column(name = "CIUDAD", length = 100)
+    @Column(name = "ciudad", length = 100)
     private String ciudad;
 
-    @Column(name = "OBJETIVO", nullable = false, length = 30)
+    @Column(name = "objetivo", nullable = false, length = 30)
     private String objetivo;
 
-    @Column(name = "INTERESES", length = 1000)
+    @Column(name = "intereses", length = 1000)
     private String intereses;
 
-    @Column(name = "EDAD_MIN_BUSCADA", nullable = false)
+    @Column(name = "edad_min_buscada", nullable = false)
     private Integer edadMinBuscada;
 
-    @Column(name = "EDAD_MAX_BUSCADA", nullable = false)
+    @Column(name = "edad_max_buscada", nullable = false)
     private Integer edadMaxBuscada;
 
-    @Column(name = "DISTANCIA_MAX_KM", nullable = false)
+    @Column(name = "distancia_max_km", nullable = false)
     private Integer distanciaMaxKm;
 
-    @Column(name = "GENERO_BUSCADO", length = 20)
+    @Column(name = "genero_buscado", length = 20)
     private String generoBuscado;
 
-    @Column(name = "FOTO_PRINCIPAL_ID")
+    @Column(name = "foto_principal_id")
     private Long fotoPrincipalId;
 
     @UpdateTimestamp
-    @Column(name = "FECHA_ACTUALIZACION", nullable = false)
+    @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 }

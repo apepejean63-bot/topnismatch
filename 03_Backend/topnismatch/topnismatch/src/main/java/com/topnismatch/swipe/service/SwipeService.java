@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +20,6 @@ public class SwipeService {
     @SuppressWarnings("unchecked")
     public List<DiscoverResponse> discover(Long usuarioId) {
 
-        // Obtener preferencias del usuario
         List<Object[]> prefList = entityManager.createNativeQuery(
                         "SELECT p.edad_min_buscada, p.edad_max_buscada, p.genero_buscado, " +
                                 "p.distancia_max_km FROM PERFIL p WHERE p.usuario_id = :userId")
@@ -39,8 +37,6 @@ public class SwipeService {
             generoBuscado = pref[2] != null ? (String) pref[2] : null;
         }
 
-        // Query para descubrir perfiles
-        // Excluir: yo mismo, ya swiped, bloqueados, sin perfil
         String sql =
                 "SELECT u.usuario_id, u.nombre, u.fecha_nacimiento, u.genero, " +
                         "p.perfil_id, p.bio, p.ciudad, p.intereses, p.foto_principal_id " +
@@ -56,8 +52,8 @@ public class SwipeService {
                         "   SELECT b.usuario_bloqueado FROM BLOQUEO b " +
                         "   WHERE b.usuario_bloqueador = :userId" +
                         ") " +
-                        "AND TRUNC(MONTHS_BETWEEN(SYSDATE, u.fecha_nacimiento)/12) BETWEEN :edadMin AND :edadMax " +
-                        "FETCH FIRST 20 ROWS ONLY";
+                        "AND DATE_PART('year', AGE(u.fecha_nacimiento)) BETWEEN :edadMin AND :edadMax " +
+                        "LIMIT 20";
 
         List<Object[]> resultados = entityManager.createNativeQuery(sql)
                 .setParameter("userId", usuarioId)
@@ -78,7 +74,6 @@ public class SwipeService {
             String intereses = (String) row[7];
             Long fotoPrincipalId = row[8] != null ? ((Number) row[8]).longValue() : null;
 
-            // Obtener URL foto principal
             String fotoPrincipalUrl = null;
             if (fotoPrincipalId != null) {
                 List<String> urls = entityManager.createNativeQuery(
@@ -88,13 +83,11 @@ public class SwipeService {
                 fotoPrincipalUrl = urls.isEmpty() ? null : urls.get(0);
             }
 
-            // Obtener todas las fotos
             List<String> fotosUrls = entityManager.createNativeQuery(
                             "SELECT url FROM FOTO WHERE usuario_id = :uid ORDER BY orden")
                     .setParameter("uid", uid)
                     .getResultList();
 
-            // Filtrar por género si está definido
             if (generoBuscado != null) {
                 String generoUsuario = (String) row[3];
                 if (!generoBuscado.equals(generoUsuario)) {
@@ -135,7 +128,6 @@ public class SwipeService {
 
     private SwipeResponse procesarSwipe(Long origen, Long destino, String tipo) {
 
-        // Verificar que no exista ya una acción
         List<Object> existente = entityManager.createNativeQuery(
                         "SELECT like_id FROM LIKE_ACCION " +
                                 "WHERE usuario_origen = :origen AND usuario_destino = :destino")
@@ -147,18 +139,16 @@ public class SwipeService {
             throw new RuntimeException("Ya realizaste una accion sobre este usuario");
         }
 
-        // Guardar la acción
         entityManager.createNativeQuery(
                         "INSERT INTO LIKE_ACCION (like_id, usuario_origen, usuario_destino, tipo) " +
-                                "VALUES (SEQ_LIKE_ID.NEXTVAL, :origen, :destino, :tipo)")
+                                "VALUES (NEXTVAL('seq_like_id'), :origen, :destino, :tipo)")
                 .setParameter("origen", origen)
                 .setParameter("destino", destino)
                 .setParameter("tipo", tipo)
                 .executeUpdate();
 
-        // Si es LIKE o SUPERLIKE verificar match mutuo
         if (tipo.equals("LIKE") || tipo.equals("SUPERLIKE")) {
-            List<Object[]> likeRecíproco = entityManager.createNativeQuery(
+            List<Object> likeReciproco = entityManager.createNativeQuery(
                             "SELECT like_id FROM LIKE_ACCION " +
                                     "WHERE usuario_origen = :destino AND usuario_destino = :origen " +
                                     "AND tipo IN ('LIKE', 'SUPERLIKE')")
@@ -166,20 +156,17 @@ public class SwipeService {
                     .setParameter("destino", destino)
                     .getResultList();
 
-            if (!likeRecíproco.isEmpty()) {
-                // Calcular compatibilidad
+            if (!likeReciproco.isEmpty()) {
                 double compatibilidad = calcularCompatibilidad(origen, destino);
 
-                // Crear match
                 entityManager.createNativeQuery(
                                 "INSERT INTO MATCH_TOPNIS (match_id, usuario1_id, usuario2_id, compatibilidad) " +
-                                        "VALUES (SEQ_MATCH_ID.NEXTVAL, :u1, :u2, :compat)")
+                                        "VALUES (NEXTVAL('seq_match_id'), :u1, :u2, :compat)")
                         .setParameter("u1", Math.min(origen, destino))
                         .setParameter("u2", Math.max(origen, destino))
                         .setParameter("compat", compatibilidad)
                         .executeUpdate();
 
-                // Obtener el match creado
                 List<Object> matchCreado = entityManager.createNativeQuery(
                                 "SELECT match_id FROM MATCH_TOPNIS " +
                                         "WHERE usuario1_id = :u1 AND usuario2_id = :u2")
@@ -198,7 +185,6 @@ public class SwipeService {
     }
 
     private double calcularCompatibilidad(Long usuario1, Long usuario2) {
-        // Obtener intereses de ambos usuarios
         List<String> intereses1 = entityManager.createNativeQuery(
                         "SELECT intereses FROM PERFIL WHERE usuario_id = :userId")
                 .setParameter("userId", usuario1)
@@ -238,6 +224,5 @@ public class SwipeService {
         java.time.LocalDate hoy = java.time.LocalDate.now();
         java.time.LocalDate nacimiento = new java.sql.Date(fechaNacimiento.getTime()).toLocalDate();
         return java.time.Period.between(nacimiento, hoy).getYears();
-
     }
 }
