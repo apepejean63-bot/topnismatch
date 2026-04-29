@@ -1,5 +1,6 @@
 package com.topnismatch.auth.controller;
 
+
 import com.topnismatch.auth.dto.*;
 import com.topnismatch.auth.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
@@ -61,4 +63,6 @@ public class AuthController {
         authService.deleteAccount(request);
         return ResponseEntity.noContent().build();
     }
+
+
 }
