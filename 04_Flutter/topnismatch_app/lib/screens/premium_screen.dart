@@ -90,8 +90,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                     child: Column(
                       children: [
-                        const Icon(Icons.workspace_premium,
-                            color: Colors.white, size: 64),
+                        const Icon(
+                          Icons.workspace_premium,
+                          color: Colors.white,
+                          size: 64,
+                        ),
                         const SizedBox(height: 16),
                         const Text(
                           'TopnisMatch Premium',
@@ -102,10 +105,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Estado actual
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(20),
@@ -115,14 +119,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
                                 ? '✨ Plan: ${_suscripcion!['plan']} — ${_suscripcion!['diasRestantes']} días restantes'
                                 : '🔓 Plan actual: GRATUITO',
                             style: const TextStyle(
-                                color: Colors.white, fontSize: 14),
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  // Beneficios
+                  // Beneficios y planes
                   Padding(
                     padding: const EdgeInsets.all(24),
                     child: Column(
@@ -168,7 +174,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Planes
                         if (_suscripcion?['esPremium'] != true) ...[
                           const Text(
                             'Elige tu plan:',
@@ -178,8 +183,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-
-                          // Plan mensual
                           _buildPlanCard(
                             'PREMIUM_MENSUAL',
                             'Premium Mensual',
@@ -188,8 +191,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             false,
                           ),
                           const SizedBox(height: 12),
-
-                          // Plan anual
                           _buildPlanCard(
                             'PREMIUM_ANUAL',
                             'Premium Anual',
@@ -198,7 +199,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             true,
                           ),
                         ] else ...[
-                          // Ya es premium
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
@@ -208,8 +208,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.check_circle,
-                                    color: Colors.green, size: 32),
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                  size: 32,
+                                ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
@@ -227,12 +230,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
                                       Text(
                                         'Plan: ${_suscripcion!['plan']}',
                                         style: const TextStyle(
-                                            color: Colors.grey),
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                       Text(
                                         'Vence en: ${_suscripcion!['diasRestantes']} días',
                                         style: const TextStyle(
-                                            color: Colors.grey),
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -241,7 +246,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Renovar
                           OutlinedButton(
                             onPressed: _isUpgrading
                                 ? null
@@ -249,3 +253,167 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFFF4458),
                               side: const BorderSide(color: Color(0xFFFF4458)),
+                              minimumSize: const Size(double.infinity, 50),
+                            ),
+                            child: const Text('Renovar plan'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildBeneficio(
+    IconData icon,
+    String titulo,
+    String descripcion,
+    Color color,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  titulo,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  descripcion,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.check_circle, color: Colors.green, size: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlanCard(
+    String plan,
+    String titulo,
+    String precio,
+    String descripcion,
+    bool esPopular,
+  ) {
+    return GestureDetector(
+      onTap: _isUpgrading ? null : () => _activarPremium(plan),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: esPopular
+              ? const LinearGradient(
+                  colors: [Color(0xFFFF4458), Color(0xFFFF8C00)],
+                )
+              : null,
+          color: esPopular ? null : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: esPopular ? Colors.transparent : const Color(0xFFFF4458),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (esPopular)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        '⭐ MÁS POPULAR',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  Text(
+                    titulo,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: esPopular ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  Text(
+                    descripcion,
+                    style: TextStyle(
+                      color: esPopular ? Colors.white70 : Colors.grey,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              children: [
+                Text(
+                  precio,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: esPopular ? Colors.white : const Color(0xFFFF4458),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                _isUpgrading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Icon(
+                        Icons.arrow_forward_ios,
+                        color: esPopular
+                            ? Colors.white
+                            : const Color(0xFFFF4458),
+                        size: 16,
+                      ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

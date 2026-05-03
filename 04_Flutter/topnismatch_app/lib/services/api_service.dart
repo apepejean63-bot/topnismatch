@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
@@ -12,7 +12,6 @@ class ApiService {
     _dio.options.connectTimeout = const Duration(seconds: 30);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
 
-    // Interceptor para agregar JWT automáticamente
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -29,7 +28,6 @@ class ApiService {
     );
   }
 
-  // ── AUTH ──────────────────────────────────────
   Future<Map<String, dynamic>> register(Map<String, dynamic> data) async {
     final response = await _dio.post('/auth/register', data: data);
     return response.data;
@@ -48,7 +46,6 @@ class ApiService {
     await _storage.delete(key: 'jwt_token');
   }
 
-  // ── PROFILE ───────────────────────────────────
   Future<Map<String, dynamic>> getMiPerfil() async {
     final response = await _dio.get('/profile/me');
     return response.data;
@@ -64,7 +61,6 @@ class ApiService {
     return response.data;
   }
 
-  // ── SWIPE ─────────────────────────────────────
   Future<List<dynamic>> discover() async {
     final response = await _dio.get('/discover');
     return response.data;
@@ -80,22 +76,17 @@ class ApiService {
     return response.data;
   }
 
-  // ── MATCH ─────────────────────────────────────
   Future<List<dynamic>> getMisMatches() async {
     final response = await _dio.get('/matches');
     return response.data;
   }
 
-  // ── CHAT ──────────────────────────────────────
   Future<List<dynamic>> getMensajes(int matchId) async {
     final response = await _dio.get('/messages/$matchId');
     return response.data;
   }
 
-  Future<Map<String, dynamic>> enviarMensaje(
-    int matchId,
-    String contenido,
-  ) async {
+  Future<Map<String, dynamic>> enviarMensaje(int matchId, String contenido) async {
     final response = await _dio.post(
       '/messages/$matchId',
       data: {'contenido': contenido},
@@ -103,13 +94,19 @@ class ApiService {
     return response.data;
   }
 
-  // ── PREMIUM ───────────────────────────────────
   Future<Map<String, dynamic>> getSuscripcion() async {
     final response = await _dio.get('/subscription');
     return response.data;
   }
 
-  // ── STORAGE ───────────────────────────────────
+  Future<Map<String, dynamic>> upgradePremium(String plan) async {
+    final response = await _dio.post('/subscription/upgrade', data: {
+      'plan': plan,
+      'reciboStore': 'receipt-flutter-${DateTime.now().millisecondsSinceEpoch}',
+    });
+    return response.data;
+  }
+
   Future<void> saveToken(String token) async {
     await _storage.write(key: 'jwt_token', value: token);
   }

@@ -18,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen>
   List<dynamic> _perfiles = [];
   bool _isLoading = true;
 
-  // Swipe animation
   double _dragX = 0;
   double _dragY = 0;
   bool _isDragging = false;
@@ -99,6 +98,11 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.workspace_premium, color: Colors.white),
+            tooltip: 'Premium',
+            onPressed: () => Navigator.pushNamed(context, '/premium'),
+          ),
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
@@ -215,7 +219,6 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                       child: Stack(
                         children: [
-                          // Foto
                           Container(
                             width: double.infinity,
                             height: double.infinity,
@@ -247,7 +250,6 @@ class _HomeScreenState extends State<HomeScreen>
                                     ),
                                   ),
                           ),
-                          // Info
                           Positioned(
                             bottom: 0,
                             left: 0,
@@ -299,7 +301,6 @@ class _HomeScreenState extends State<HomeScreen>
                               ),
                             ),
                           ),
-                          // LIKE overlay
                           if (isLiking)
                             Positioned(
                               top: 30,
@@ -329,7 +330,6 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                               ),
                             ),
-                          // NOPE overlay
                           if (isDisliking)
                             Positioned(
                               top: 30,
@@ -368,7 +368,6 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
         ),
-        // Botones
         Padding(
           padding: const EdgeInsets.only(bottom: 24.0),
           child: Row(
@@ -524,6 +523,22 @@ class _HomeScreenState extends State<HomeScreen>
               _buildInfoCard(
                 'Intereses',
                 perfil['intereses'] ?? 'Sin intereses',
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, '/premium'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF4458),
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.workspace_premium, color: Colors.white),
+                label: const Text(
+                  'Ver planes Premium',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
               ),
             ],
           ),
