@@ -33,7 +33,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = 'Email o contraseña incorrectos';
+      _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
       return false;

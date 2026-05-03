@@ -86,7 +86,10 @@ class ApiService {
     return response.data;
   }
 
-  Future<Map<String, dynamic>> enviarMensaje(int matchId, String contenido) async {
+  Future<Map<String, dynamic>> enviarMensaje(
+    int matchId,
+    String contenido,
+  ) async {
     final response = await _dio.post(
       '/messages/$matchId',
       data: {'contenido': contenido},
@@ -100,10 +103,14 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> upgradePremium(String plan) async {
-    final response = await _dio.post('/subscription/upgrade', data: {
-      'plan': plan,
-      'reciboStore': 'receipt-flutter-${DateTime.now().millisecondsSinceEpoch}',
-    });
+    final response = await _dio.post(
+      '/subscription/upgrade',
+      data: {
+        'plan': plan,
+        'reciboStore':
+            'receipt-flutter-${DateTime.now().millisecondsSinceEpoch}',
+      },
+    );
     return response.data;
   }
 
