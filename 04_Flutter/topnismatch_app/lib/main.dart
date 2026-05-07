@@ -7,6 +7,7 @@ import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/create_profile_screen.dart';
 import 'screens/premium_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +42,7 @@ class TopnisMatchApp extends StatelessWidget {
           '/home': (context) => const HomeScreen(),
           '/create-profile': (context) => const CreateProfileScreen(),
           '/premium': (context) => const PremiumScreen(),
+          '/profile': (context) => const ProfileScreen(),
         },
       ),
     );

@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -45,9 +45,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       if (img != null) setState(() => _selectedImage = File(img.path));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
     }
   }
@@ -58,13 +58,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     try {
       final fileName = 'foto_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final bytes = await _selectedImage!.readAsBytes();
-      await _supabase.storage
-          .from('fotos')
-          .uploadBinary(
-            fileName,
-            bytes,
-            fileOptions: const FileOptions(contentType: 'image/jpeg'),
-          );
+      await _supabase.storage.from('fotos').uploadBinary(
+        fileName, bytes,
+        fileOptions: const FileOptions(contentType: 'image/jpeg'),
+      );
       final url = _supabase.storage.from('fotos').getPublicUrl(fileName);
       setState(() => _isUploadingPhoto = false);
       return url;
@@ -92,9 +89,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       if (mounted) Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Error al crear perfil')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al crear perfil')),
+        );
       }
     }
     setState(() => _isLoading = false);
@@ -106,10 +103,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFFFF4458),
-        title: const Text(
-          'Crear Perfil',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Crear Perfil',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
@@ -123,28 +118,15 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: const Color(0xFFFF4458),
-                    backgroundImage: _selectedImage != null
-                        ? FileImage(_selectedImage!)
-                        : null,
-                    child: _selectedImage == null
-                        ? const Icon(
-                            Icons.person,
-                            size: 60,
-                            color: Colors.white,
-                          )
-                        : null,
+                    backgroundImage: _selectedImage != null ? FileImage(_selectedImage!) : null,
+                    child: _selectedImage == null ? const Icon(Icons.person, size: 60, color: Colors.white) : null,
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: _seleccionarFoto,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF4458),
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4458)),
                     icon: const Icon(Icons.camera_alt, color: Colors.white),
-                    label: const Text(
-                      'Agregar foto',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    label: const Text('Agregar foto', style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -157,9 +139,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               decoration: InputDecoration(
                 labelText: 'Bio',
                 hintText: 'Cuentanos sobre ti...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: Color(0xFFFF4458)),
@@ -172,9 +152,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               decoration: InputDecoration(
                 labelText: 'Ciudad',
                 prefixIcon: const Icon(Icons.location_on),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: Color(0xFFFF4458)),
@@ -188,9 +166,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 labelText: 'Intereses',
                 hintText: 'musica, viajes, deporte...',
                 prefixIcon: const Icon(Icons.favorite),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: Color(0xFFFF4458)),
@@ -198,60 +174,33 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Busco:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            const Text('Busco:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: _generoBuscado,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+              decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
               items: const [
                 DropdownMenuItem(value: 'MASCULINO', child: Text('Hombres')),
                 DropdownMenuItem(value: 'FEMENINO', child: Text('Mujeres')),
-                DropdownMenuItem(
-                  value: 'NO_BINARIO',
-                  child: Text('No binario'),
-                ),
+                DropdownMenuItem(value: 'NO_BINARIO', child: Text('No binario')),
               ],
               onChanged: (value) => setState(() => _generoBuscado = value!),
             ),
             const SizedBox(height: 24),
-            Text(
-              'Rango de edad: ${_edadMin.toInt()} - ${_edadMax.toInt()} anos',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            Text('Rango de edad: ${_edadMin.toInt()} - ${_edadMax.toInt()} anos',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             RangeSlider(
               values: RangeValues(_edadMin, _edadMax),
-              min: 18,
-              max: 99,
-              divisions: 81,
+              min: 18, max: 99, divisions: 81,
               activeColor: const Color(0xFFFF4458),
-              labels: RangeLabels(
-                _edadMin.toInt().toString(),
-                _edadMax.toInt().toString(),
-              ),
-              onChanged: (values) {
-                setState(() {
-                  _edadMin = values.start;
-                  _edadMax = values.end;
-                });
-              },
+              labels: RangeLabels(_edadMin.toInt().toString(), _edadMax.toInt().toString()),
+              onChanged: (values) => setState(() { _edadMin = values.start; _edadMax = values.end; }),
             ),
             const SizedBox(height: 16),
-            Text(
-              'Distancia maxima: ${_distancia.toInt()} km',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            Text('Distancia maxima: ${_distancia.toInt()} km',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             Slider(
-              value: _distancia,
-              min: 1,
-              max: 500,
-              divisions: 499,
+              value: _distancia, min: 1, max: 500, divisions: 499,
               activeColor: const Color(0xFFFF4458),
               label: '${_distancia.toInt()} km',
               onChanged: (value) => setState(() => _distancia = value),
@@ -263,19 +212,11 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 backgroundColor: const Color(0xFFFF4458),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: _isLoading || _isUploadingPhoto
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'Crear Perfil',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  : const Text('Crear Perfil', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
           ],
         ),

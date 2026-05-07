@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'chat_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,12 +49,12 @@ class _HomeScreenState extends State<HomeScreen>
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('🎉 ¡Es un Match!'),
-              content: const Text('¡Felicidades! Ahora pueden chatear.'),
+              title: const Text('ðŸŽ‰ Â¡Es un Match!'),
+              content: const Text('Â¡Felicidades! Ahora pueden chatear.'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('¡Genial!'),
+                  child: const Text('Â¡Genial!'),
                 ),
               ],
             ),
@@ -154,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen>
             const Icon(Icons.search_off, size: 80, color: Colors.grey),
             const SizedBox(height: 16),
             const Text(
-              'No hay más perfiles por ahora',
+              'No hay mÃ¡s perfiles por ahora',
               style: TextStyle(fontSize: 18, color: Colors.grey),
             ),
             const SizedBox(height: 16),
@@ -283,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                   if (perfil['ciudad'] != null)
                                     Text(
-                                      '📍 ${perfil['ciudad']}',
+                                      'ðŸ“ ${perfil['ciudad']}',
                                       style: const TextStyle(
                                         color: Colors.white70,
                                       ),
@@ -426,7 +427,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Icon(Icons.favorite_border, size: 80, color: Colors.grey),
                 SizedBox(height: 16),
                 Text(
-                  'Aún no tienes matches',
+                  'AÃºn no tienes matches',
                   style: TextStyle(fontSize: 18, color: Colors.grey),
                 ),
               ],
@@ -472,79 +473,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildPerfil() {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _api.getMiPerfil(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFFFF4458)),
-          );
-        }
-        if (!snapshot.hasData) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('No tienes perfil aún'),
-                ElevatedButton(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, '/create-profile'),
-                  child: const Text('Crear Perfil'),
-                ),
-              ],
-            ),
-          );
-        }
-        final perfil = snapshot.data!;
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              CircleAvatar(
-                radius: 60,
-                backgroundColor: const Color(0xFFFF4458),
-                child: Text(
-                  perfil['nombre'][0].toUpperCase(),
-                  style: const TextStyle(fontSize: 48, color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                perfil['nombre'],
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-              _buildInfoCard('Bio', perfil['bio'] ?? 'Sin bio'),
-              _buildInfoCard('Ciudad', perfil['ciudad'] ?? 'Sin ciudad'),
-              _buildInfoCard(
-                'Intereses',
-                perfil['intereses'] ?? 'Sin intereses',
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, '/premium'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF4458),
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.workspace_premium, color: Colors.white),
-                label: const Text(
-                  'Ver planes Premium',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    Widget _buildPerfil() {
+    return const ProfileScreen();
   }
 
   Widget _buildInfoCard(String title, String value) {
@@ -557,3 +487,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 }
+
+
+
+
