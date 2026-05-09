@@ -23,4 +23,15 @@ public class ProfileResponse {
     private String generoBuscado;
     private Long fotoPrincipalId;
     private List<FotoResponse> fotos;
+    private String profesion;
+    private String educacion;
+    private String idioma;
+    private String signoZodiacal;
+    private String mascotas;
+    private String alcohol;
+    private String tabaco;
+    private String ejercicio;
+    private String tieneHijos;
+    private String quiereHijos;
+    private String religion;
 }

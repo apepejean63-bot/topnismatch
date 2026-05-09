@@ -57,4 +57,37 @@ public class Perfil {
     @UpdateTimestamp
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
+
+    @Column(name = "profesion", length = 100)
+    private String profesion;
+
+    @Column(name = "educacion", length = 100)
+    private String educacion;
+
+    @Column(name = "idioma", length = 50)
+    private String idioma;
+
+    @Column(name = "signo_zodiacal", length = 50)
+    private String signoZodiacal;
+
+    @Column(name = "mascotas", length = 50)
+    private String mascotas;
+
+    @Column(name = "alcohol", length = 50)
+    private String alcohol;
+
+    @Column(name = "tabaco", length = 50)
+    private String tabaco;
+
+    @Column(name = "ejercicio", length = 50)
+    private String ejercicio;
+
+    @Column(name = "tiene_hijos", length = 50)
+    private String tieneHijos;
+
+    @Column(name = "quiere_hijos", length = 50)
+    private String quiereHijos;
+
+    @Column(name = "religion", length = 50)
+    private String religion;
 }

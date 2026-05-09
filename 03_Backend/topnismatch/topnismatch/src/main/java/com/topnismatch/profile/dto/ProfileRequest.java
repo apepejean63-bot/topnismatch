@@ -34,4 +34,37 @@ public class ProfileRequest {
     @Pattern(regexp = "MASCULINO|FEMENINO|NO_BINARIO|PREFIERO_NO_DECIR",
             message = "Genero invalido")
     private String generoBuscado;
+
+    @Size(max = 100)
+    private String profesion;
+
+    @Size(max = 100)
+    private String educacion;
+
+    @Size(max = 50)
+    private String idioma;
+
+    @Size(max = 50)
+    private String signoZodiacal;
+
+    @Size(max = 50)
+    private String mascotas;
+
+    @Size(max = 50)
+    private String alcohol;
+
+    @Size(max = 50)
+    private String tabaco;
+
+    @Size(max = 50)
+    private String ejercicio;
+
+    @Size(max = 50)
+    private String tieneHijos;
+
+    @Size(max = 50)
+    private String quiereHijos;
+
+    @Size(max = 50)
+    private String religion;
 }

@@ -71,7 +71,17 @@ public class ProfileService {
         if (request.getEdadMaxBuscada() != null) perfil.setEdadMaxBuscada(request.getEdadMaxBuscada());
         if (request.getDistanciaMaxKm() != null) perfil.setDistanciaMaxKm(request.getDistanciaMaxKm());
         if (request.getGeneroBuscado() != null) perfil.setGeneroBuscado(request.getGeneroBuscado());
-
+        if (request.getProfesion() != null) perfil.setProfesion(request.getProfesion());
+        if (request.getEducacion() != null) perfil.setEducacion(request.getEducacion());
+        if (request.getIdioma() != null) perfil.setIdioma(request.getIdioma());
+        if (request.getSignoZodiacal() != null) perfil.setSignoZodiacal(request.getSignoZodiacal());
+        if (request.getMascotas() != null) perfil.setMascotas(request.getMascotas());
+        if (request.getAlcohol() != null) perfil.setAlcohol(request.getAlcohol());
+        if (request.getTabaco() != null) perfil.setTabaco(request.getTabaco());
+        if (request.getEjercicio() != null) perfil.setEjercicio(request.getEjercicio());
+        if (request.getTieneHijos() != null) perfil.setTieneHijos(request.getTieneHijos());
+        if (request.getQuiereHijos() != null) perfil.setQuiereHijos(request.getQuiereHijos());
+        if (request.getReligion() != null) perfil.setReligion(request.getReligion());
         entityManager.merge(perfil);
 
         return buildProfileResponse(perfil, usuarioId);
@@ -220,6 +230,18 @@ public class ProfileService {
                 .generoBuscado(perfil.getGeneroBuscado())
                 .fotoPrincipalId(perfil.getFotoPrincipalId())
                 .fotos(fotosResponse)
+                .profesion(perfil.getProfesion())
+                .educacion(perfil.getEducacion())
+                .idioma(perfil.getIdioma())
+                .signoZodiacal(perfil.getSignoZodiacal())
+                .mascotas(perfil.getMascotas())
+                .alcohol(perfil.getAlcohol())
+                .tabaco(perfil.getTabaco())
+                .ejercicio(perfil.getEjercicio())
+                .tieneHijos(perfil.getTieneHijos())
+                .quiereHijos(perfil.getQuiereHijos())
+                .religion(perfil.getReligion())
                 .build();
     }
 }
+
