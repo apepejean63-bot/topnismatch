@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import '../services/api_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -106,12 +109,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                Map<String, dynamic> data = {};
+                if (titulo == 'Sobre m\u00ED') data['bio'] = controller.text.trim();
+                if (titulo == 'Ciudad') data['ciudad'] = controller.text.trim();
+                if (titulo == 'Profesi\u00F3n') data['profesion'] = controller.text.trim();
+                if (titulo == 'Educaci\u00F3n') data['educacion'] = controller.text.trim();
+                if (titulo == 'Idioma') data['idioma'] = controller.text.trim();
+                if (data.isNotEmpty) await _api.editarPerfil(data);
+                await _cargarPerfil();
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Guardado correctamente'), backgroundColor: Colors.green),
+                );
+              } catch (e) {
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Error al guardar'), backgroundColor: Colors.red),
+                );
+              }
+            },
             style: ElevatedButton.styleFrom(backgroundColor: primary),
             child: const Text('Guardar', style: TextStyle(color: Colors.white)),
           ),
@@ -123,35 +142,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _mostrarSelectorOpciones(String titulo, List<String> opciones) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 12),
-            Text(
-              titulo,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            Text(titulo, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            ...opciones.map(
-              (op) => ListTile(
-                title: Text(op),
-                onTap: () => Navigator.pop(ctx),
-                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-              ),
-            ),
+            ...opciones.map((op) => ListTile(
+              title: Text(op),
+              onTap: () async {
+                Navigator.pop(ctx);
+                try {
+                  Map<String, dynamic> data = {};
+                  if (titulo == 'Signo zodiacal') data['signoZodiacal'] = op;
+                  if (titulo == 'Mascotas') data['mascotas'] = op;
+                  if (titulo == 'Alcohol') data['alcohol'] = op;
+                  if (titulo == 'Tabaco') data['tabaco'] = op;
+                  if (titulo == 'Ejercicio') data['ejercicio'] = op;
+                  if (titulo == '\u00BFTienes hijos?') data['tieneHijos'] = op;
+                  if (titulo == '\u00BFQuieres hijos?') data['quiereHijos'] = op;
+                  if (titulo == 'Religi\u00F3n') data['religion'] = op;
+                  if (data.isNotEmpty) await _api.editarPerfil(data);
+                  await _cargarPerfil();
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$titulo: $op guardado'), backgroundColor: Colors.green),
+                  );
+                } catch (e) {
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Error al guardar'), backgroundColor: Colors.red),
+                  );
+                }
+              },
+              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+            )),
             const SizedBox(height: 8),
           ],
         ),
@@ -441,7 +468,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     runSpacing: 8,
                     children: [
                       GestureDetector(
-                        onTap: () => _mostrarDialogoEdicion('Edad', ''),
+                        onTap: () async {
+                        final fecha = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime(2000),
+                          firstDate: DateTime(1950),
+                          lastDate: DateTime(2010),
+                          builder: (context, child) => Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: const ColorScheme.light(primary: primary),
+                            ),
+                            child: child!,
+                          ),
+                        );
+                        if (fecha != null) {
+                          try {
+                            await _api.editarPerfil({'fechaNacimiento': fecha.toIso8601String()});
+                            await _cargarPerfil();
+                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Edad guardada'), backgroundColor: Colors.green),
+                            );
+                          } catch (e) {
+                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Error al guardar'), backgroundColor: Colors.red),
+                            );
+                          }
+                        }
+                      },
                         child: _iconChip(
                           Icons.cake,
                           edad > 0 ? '$edad a\u00F1os' : '-- a\u00F1os',
@@ -451,24 +504,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       GestureDetector(
                         onTap: () =>
                             _mostrarDialogoEdicion('Profesi\u00F3n', ''),
-                        child: _iconChip(
-                          Icons.work,
-                          'Profesi\u00F3n',
-                          Colors.blue,
-                        ),
+                        child: _iconChip(Icons.work, perfil['profesion'] ?? 'Profesi\u00F3n', Colors.blue),
                       ),
                       GestureDetector(
-                        onTap: () =>
-                            _mostrarDialogoEdicion('Educaci\u00F3n', ''),
-                        child: _iconChip(
-                          Icons.school,
-                          'Educaci\u00F3n',
-                          Colors.purple,
-                        ),
+                        onTap: () => _mostrarSelectorOpciones('Educaci\u00F3n', ['Secundaria', 'T\u00E9cnico', 'Universidad', 'Posgrado', 'Doctorado']),
+                        child: _iconChip(Icons.school, perfil['educacion'] ?? 'Educaci\u00F3n', Colors.purple),
                       ),
                       GestureDetector(
-                        onTap: () => _mostrarDialogoEdicion('Idioma', ''),
-                        child: _iconChip(Icons.language, 'Idioma', Colors.teal),
+                        onTap: () => _mostrarSelectorOpciones('Idioma', ['Espa\u00F1ol', 'Ingl\u00E9s', 'Franc\u00E9s', 'Portugu\u00E9s', 'Otros']),
+                        child: _iconChip(Icons.language, perfil['idioma'] ?? 'Idioma', Colors.teal),
                       ),
                       GestureDetector(
                         onTap: () =>
@@ -486,11 +530,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               'Acuario',
                               'Piscis',
                             ]),
-                        child: _iconChip(
-                          Icons.auto_awesome,
-                          'Signo zodiacal',
-                          Colors.amber,
-                        ),
+                        child: _iconChip(Icons.auto_awesome, perfil['signoZodiacal'] ?? 'Signo zodiacal', Colors.amber),
                       ),
                     ],
                   ),
