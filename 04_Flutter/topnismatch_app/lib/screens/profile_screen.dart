@@ -165,6 +165,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   if (titulo == 'Ejercicio') data['ejercicio'] = op;
                   if (titulo == '\u00BFTienes hijos?') data['tieneHijos'] = op;
                   if (titulo == '\u00BFQuieres hijos?') data['quiereHijos'] = op;
+                  if (titulo == 'Educaci\u00F3n') data['educacion'] = op;
+                  if (titulo == 'Idioma') data['idioma'] = op;
                   if (titulo == 'Religi\u00F3n') data['religion'] = op;
                   if (data.isNotEmpty) await _api.editarPerfil(data);
                   await _cargarPerfil();

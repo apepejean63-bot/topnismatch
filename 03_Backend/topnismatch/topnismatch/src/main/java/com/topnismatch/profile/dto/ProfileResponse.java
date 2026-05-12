@@ -34,4 +34,5 @@ public class ProfileResponse {
     private String tieneHijos;
     private String quiereHijos;
     private String religion;
+    private String fechaNacimiento;
 }

@@ -90,4 +90,7 @@ public class Perfil {
 
     @Column(name = "religion", length = 50)
     private String religion;
+
+    @Column(name = "fecha_nacimiento", length = 50)
+    private String fechaNacimiento;
 }

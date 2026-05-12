@@ -82,6 +82,7 @@ public class ProfileService {
         if (request.getTieneHijos() != null) perfil.setTieneHijos(request.getTieneHijos());
         if (request.getQuiereHijos() != null) perfil.setQuiereHijos(request.getQuiereHijos());
         if (request.getReligion() != null) perfil.setReligion(request.getReligion());
+        if (request.getFechaNacimiento() != null) perfil.setFechaNacimiento(request.getFechaNacimiento());
         entityManager.merge(perfil);
 
         return buildProfileResponse(perfil, usuarioId);
@@ -241,6 +242,7 @@ public class ProfileService {
                 .tieneHijos(perfil.getTieneHijos())
                 .quiereHijos(perfil.getQuiereHijos())
                 .religion(perfil.getReligion())
+                .fechaNacimiento(perfil.getFechaNacimiento())
                 .build();
     }
 }

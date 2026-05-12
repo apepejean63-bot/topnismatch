@@ -67,4 +67,6 @@ public class ProfileRequest {
 
     @Size(max = 50)
     private String religion;
+
+    private String fechaNacimiento;
 }
