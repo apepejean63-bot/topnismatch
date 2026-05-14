@@ -724,31 +724,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     runSpacing: 8,
                     children: [
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () async {
+                          setState(() {
+                            _perfil!['objetivo'] = 'RELACION_SERIA';
+                          });
+                          try {
+                            await _api.editarPerfil({
+                              'objetivo': 'RELACION_SERIA',
+                            });
+                          } catch (e) {}
+                        },
                         child: _buscoChip(
                           'Relaci\u00F3n seria',
                           perfil['objetivo'] == 'RELACION_SERIA',
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () async {
+                          setState(() {
+                            _perfil!['objetivo'] = 'AMISTAD';
+                          });
+                          try {
+                            await _api.editarPerfil({'objetivo': 'AMISTAD'});
+                          } catch (e) {}
+                        },
                         child: _buscoChip(
                           'Amistad',
                           perfil['objetivo'] == 'AMISTAD',
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () async {
+                          setState(() {
+                            _perfil!['objetivo'] = 'CASUAL';
+                          });
+                          try {
+                            await _api.editarPerfil({'objetivo': 'CASUAL'});
+                          } catch (e) {}
+                        },
                         child: _buscoChip(
                           'Algo casual',
                           perfil['objetivo'] == 'CASUAL',
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () async {
+                          setState(() {
+                            _perfil!['objetivo'] = 'NO_SE';
+                          });
+                          try {
+                            await _api.editarPerfil({'objetivo': 'NO_SE'});
+                          } catch (e) {}
+                        },
                         child: _buscoChip(
                           'No s\u00E9 a\u00FAn',
-                          perfil['objetivo'] == null,
+                          perfil['objetivo'] == 'NO_SE',
                         ),
                       ),
                     ],

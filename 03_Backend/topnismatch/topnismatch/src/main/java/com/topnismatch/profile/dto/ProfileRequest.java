@@ -35,6 +35,9 @@ public class ProfileRequest {
             message = "Genero invalido")
     private String generoBuscado;
 
+    @Pattern(regexp = "RELACION_SERIA|AMISTAD|CASUAL|NO_SE", message = "Objetivo invalido")
+    private String objetivo;
+
     @Size(max = 100)
     private String profesion;
 

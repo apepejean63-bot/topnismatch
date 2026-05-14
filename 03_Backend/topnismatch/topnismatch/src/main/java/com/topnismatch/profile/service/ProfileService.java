@@ -82,6 +82,7 @@ public class ProfileService {
         if (request.getTieneHijos() != null) perfil.setTieneHijos(request.getTieneHijos());
         if (request.getQuiereHijos() != null) perfil.setQuiereHijos(request.getQuiereHijos());
         if (request.getReligion() != null) perfil.setReligion(request.getReligion());
+        if (request.getObjetivo() != null) perfil.setObjetivo(request.getObjetivo());
         if (request.getFechaNacimiento() != null) perfil.setFechaNacimiento(request.getFechaNacimiento());
         entityManager.merge(perfil);
 
