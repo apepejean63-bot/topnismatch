@@ -21,8 +21,8 @@ public class UploadController {
     @Value("${supabase.url}")
     private String supabaseUrl;
 
-    @Value("${supabase.anon-key}")
-    private String supabaseAnonKey;
+    @Value("${supabase.service-key}")
+    private String supabaseServiceKey;
 
     @PostMapping("/foto")
     public ResponseEntity<Map<String, String>> subirFoto(
@@ -37,7 +37,7 @@ public class UploadController {
 
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + supabaseAnonKey);
+            headers.set("Authorization", "Bearer " + supabaseServiceKey);
             headers.setContentType(MediaType.IMAGE_JPEG);
             headers.set("x-upsert", "true");
 
