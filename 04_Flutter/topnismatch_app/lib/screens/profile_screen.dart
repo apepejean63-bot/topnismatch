@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,7 +14,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ApiService _api = ApiService();
   Map<String, dynamic>? _perfil;
   bool _isLoading = true;
-  final ImagePicker _picker = ImagePicker();
 
   static const Color primary = Color(0xFFFF4458);
   static const Color primaryOrange = Color(0xFFFF8C00);
@@ -28,25 +27,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _cargarPerfil() async {
     try {
       final perfil = await _api.getMiPerfil();
-      setState(() {
-        _perfil = perfil;
-        _isLoading = false;
-      });
+      setState(() { _perfil = perfil; _isLoading = false; });
     } catch (e) {
       setState(() => _isLoading = false);
     }
-  }
-
-  double _calcularProgreso(Map<String, dynamic> perfil) {
-    int campos = 0;
-    if (perfil['bio'] != null && perfil['bio'].toString().isNotEmpty) campos++;
-    if (perfil['ciudad'] != null && perfil['ciudad'].toString().isNotEmpty)
-      campos++;
-    if (perfil['intereses'] != null &&
-        perfil['intereses'].toString().isNotEmpty)
-      campos++;
-    if (perfil['fotoPrincipalUrl'] != null) campos++;
-    return campos / 4;
   }
 
   int _calcularEdad(String? fechaNacimiento) {
@@ -55,333 +39,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final nacimiento = DateTime.parse(fechaNacimiento);
       final hoy = DateTime.now();
       int edad = hoy.year - nacimiento.year;
-      if (hoy.month < nacimiento.month ||
-          (hoy.month == nacimiento.month && hoy.day < nacimiento.day))
-        edad--;
+      if (hoy.month < nacimiento.month || (hoy.month == nacimiento.month && hoy.day < nacimiento.day)) edad--;
       return edad;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  Future<void> _abrirGaleria() async {
-    try {
-      final image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
-      if (image != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Foto seleccionada. Subida pr\u00F3ximamente.'),
-            backgroundColor: primary,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
-  void _mostrarDialogoEdicion(String titulo, String valorActual) {
-    final controller = TextEditingController(text: valorActual);
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(titulo),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            hintText: 'Ingresa $titulo',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: primary),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                Map<String, dynamic> data = {};
-                if (titulo == 'Sobre m\u00ED')
-                  data['bio'] = controller.text.trim();
-                if (titulo == 'Ciudad') data['ciudad'] = controller.text.trim();
-                if (titulo == 'Profesi\u00F3n')
-                  data['profesion'] = controller.text.trim();
-                if (titulo == 'Educaci\u00F3n')
-                  data['educacion'] = controller.text.trim();
-                if (titulo == 'Idioma') data['idioma'] = controller.text.trim();
-                if (data.isNotEmpty) await _api.editarPerfil(data);
-                await _cargarPerfil();
-                if (mounted)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Guardado correctamente'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-              } catch (e) {
-                if (mounted)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Error al guardar'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: primary),
-            child: const Text('Guardar', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _mostrarSelectorOpciones(String titulo, List<String> opciones) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.6,
-        maxChildSize: 0.9,
-        minChildSize: 0.3,
-        builder: (_, controller) => Column(
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              titulo,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const Divider(),
-            Expanded(
-              child: ListView(
-                controller: controller,
-                padding: const EdgeInsets.only(bottom: 32),
-                children: opciones
-                    .map(
-                      (op) => ListTile(
-                        title: Text(op),
-                        trailing: const Icon(
-                          Icons.chevron_right,
-                          color: Colors.grey,
-                        ),
-                        onTap: () async {
-                          Navigator.pop(ctx);
-                          try {
-                            Map<String, dynamic> data = {};
-                            if (titulo == 'Signo zodiacal')
-                              data['signoZodiacal'] = op;
-                            if (titulo == 'Mascotas') data['mascotas'] = op;
-                            if (titulo == 'Alcohol') data['alcohol'] = op;
-                            if (titulo == 'Tabaco') data['tabaco'] = op;
-                            if (titulo == 'Ejercicio') data['ejercicio'] = op;
-                            if (titulo == '\u00BFTienes hijos?')
-                              data['tieneHijos'] = op;
-                            if (titulo == '\u00BFQuieres hijos?')
-                              data['quiereHijos'] = op;
-                            if (titulo == 'Religi\u00F3n')
-                              data['religion'] = op;
-                            if (titulo == 'Educaci\u00F3n')
-                              data['educacion'] = op;
-                            if (titulo == 'Idioma') data['idioma'] = op;
-                            if (data.isNotEmpty) await _api.editarPerfil(data);
-                            await _cargarPerfil();
-                            if (mounted)
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('$titulo guardado'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                          } catch (e) {
-                            if (mounted)
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Error al guardar'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                          }
-                        },
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _mostrarIdiomasMultiples() {
-    final idiomasDisponibles = [
-      'Espa\u00F1ol',
-      'Ingl\u00E9s',
-      'Franc\u00E9s',
-      'Portugu\u00E9s',
-      'Alem\u00E1n',
-      'Italiano',
-      'Chino',
-      'Otros',
-    ];
-    final seleccionados = (_perfil?['idioma'] as String? ?? '')
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    final temp = List<String>.from(seleccionados);
-    showModalBottomSheet(
-      isScrollControlled: true,
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModalState) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Idiomas (m\u00E1x. 3)',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ...idiomasDisponibles.map(
-                (idioma) => CheckboxListTile(
-                  title: Text(idioma),
-                  value: temp.contains(idioma),
-                  activeColor: primary,
-                  onChanged: (val) {
-                    setModalState(() {
-                      if (val == true && temp.length < 3)
-                        temp.add(idioma);
-                      else if (val == false)
-                        temp.remove(idioma);
-                    });
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    try {
-                      await _api.editarPerfil({'idioma': temp.join(', ')});
-                      await _cargarPerfil();
-                      if (mounted)
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Idiomas guardados'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                    } catch (e) {
-                      if (mounted)
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Error al guardar'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primary,
-                    minimumSize: const Size(double.infinity, 48),
-                  ),
-                  child: const Text(
-                    'Guardar',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _abrirDatePicker() async {
-    final fecha = await showDatePicker(
-      context: context,
-      initialDate: DateTime(2000),
-      firstDate: DateTime(1950),
-      lastDate: DateTime(2010),
-      builder: (context, child) => Theme(
-        data: Theme.of(
-          context,
-        ).copyWith(colorScheme: const ColorScheme.light(primary: primary)),
-        child: child!,
-      ),
-    );
-    if (fecha != null) {
-      try {
-        await _api.editarPerfil({'fechaNacimiento': fecha.toIso8601String()});
-        await _cargarPerfil();
-        if (mounted)
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Edad guardada'),
-              backgroundColor: Colors.green,
-            ),
-          );
-      } catch (e) {
-        if (mounted)
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al guardar'),
-              backgroundColor: Colors.red,
-            ),
-          );
-      }
-    }
+    } catch (e) { return 0; }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading)
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: primary)),
-      );
+    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: primary)));
 
     if (_perfil == null) {
       return Scaffold(
@@ -394,13 +59,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Text('No tienes perfil a\u00FAn'),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () =>
-                    Navigator.pushNamed(context, '/create-profile'),
+                onPressed: () => Navigator.pushNamed(context, '/create-profile'),
                 style: ElevatedButton.styleFrom(backgroundColor: primary),
-                child: const Text(
-                  'Crear Perfil',
-                  style: TextStyle(color: Colors.white),
-                ),
+                child: const Text('Crear Perfil', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -409,153 +70,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final perfil = _perfil!;
-    final progreso = _calcularProgreso(perfil);
-    final edad =
-        perfil['edad'] ?? _calcularEdad(perfil['fechaNacimiento']?.toString());
-    final intereses =
-        (perfil['intereses'] as String?)
-            ?.split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList() ??
-        [];
+    final edad = perfil['edad'] ?? _calcularEdad(perfil['fechaNacimiento']?.toString());
+    final intereses = (perfil['intereses'] as String?)?.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList() ?? [];
+
+    String objetivoTexto = '';
+    if (perfil['objetivo'] == 'RELACION_SERIA') objetivoTexto = 'Relaci\u00F3n seria';
+    else if (perfil['objetivo'] == 'AMISTAD') objetivoTexto = 'Amistad';
+    else if (perfil['objetivo'] == 'CASUAL') objetivoTexto = 'Algo casual';
+    else if (perfil['objetivo'] == 'NO_SE') objetivoTexto = 'No s\u00E9 a\u00FAn';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Modo edici\u00F3n pr\u00F3ximamente'),
-              backgroundColor: primary,
-            ),
-          );
-        },
-        backgroundColor: primary,
-        icon: const Icon(Icons.edit, color: Colors.white),
-        label: const Text(
-          'Editar perfil',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [primary, primaryOrange],
-                ),
+                gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [primary, primaryOrange]),
               ),
               child: SafeArea(
                 bottom: false,
                 child: Column(
                   children: [
-                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              await Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+                              _cargarPerfil();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.edit, color: Colors.white, size: 14),
+                                  SizedBox(width: 6),
+                                  Text('Editar perfil', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        GestureDetector(
-                          onTap: _abrirGaleria,
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 12,
-                                ),
-                              ],
-                            ),
-                            child: ClipOval(
-                              child: perfil['fotoPrincipalUrl'] != null
-                                  ? Image.network(
-                                      perfil['fotoPrincipalUrl'],
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
-                                          _avatarPlaceholder(),
-                                    )
-                                  : _avatarPlaceholder(),
-                            ),
+                        Container(
+                          width: 100, height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 4),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 12)],
                           ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: _abrirGaleria,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                color: primary,
-                                size: 14,
-                              ),
-                            ),
+                          child: ClipOval(
+                            child: perfil['fotoPrincipalUrl'] != null
+                                ? Image.network(perfil['fotoPrincipalUrl'], fit: BoxFit.cover, errorBuilder: (_, __, ___) => _avatarPlaceholder())
+                                : _avatarPlaceholder(),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      edad > 0
-                          ? '${perfil['nombre']}, $edad'
-                          : perfil['nombre'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      edad > 0 ? '${perfil['nombre']}, $edad' : perfil['nombre'],
+                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Completado del perfil',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              Text(
-                                '${(progreso * 100).toInt()}%',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              value: progreso,
-                              backgroundColor: Colors.white.withOpacity(0.3),
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                              minHeight: 6,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -566,378 +151,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _buildCard(
-                  icon: Icons.photo_library_outlined,
-                  title: 'Fotos',
-                  child: Column(
-                    children: [
-                      GridView.count(
-                        crossAxisCount: 3,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                        children: List.generate(6, (index) {
-                          if (index == 0 &&
-                              perfil['fotoPrincipalUrl'] != null) {
-                            return GestureDetector(
-                              onTap: _abrirGaleria,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  perfil['fotoPrincipalUrl'],
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => _addPhotoCell(),
-                                ),
-                              ),
-                            );
-                          }
-                          return GestureDetector(
-                            onTap: _abrirGaleria,
-                            child: _addPhotoCell(),
-                          );
-                        }),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Agrega hasta 6 fotos para destacar tu perfil',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () => _mostrarDialogoEdicion(
-                    'Sobre m\u00ED',
-                    perfil['bio'] ?? '',
-                  ),
-                  child: _buildCard(
+                if (perfil['bio'] != null && perfil['bio'].toString().isNotEmpty) ...[
+                  _buildCard(
                     icon: Icons.person_outline,
                     title: 'Sobre m\u00ED',
-                    trailing: GestureDetector(
-                      onTap: () => _mostrarDialogoEdicion(
-                        'Sobre m\u00ED',
-                        perfil['bio'] ?? '',
-                      ),
-                      child: const Icon(Icons.edit, color: primary, size: 18),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          perfil['bio'] ??
-                              'Cu\u00E9ntale al mundo qui\u00E9n eres...',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: perfil['bio'] != null
-                                ? Colors.black87
-                                : Colors.grey,
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${(perfil['bio'] ?? '').length}/300',
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: Text(perfil['bio'], style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.5)),
                   ),
-                ),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
+                ],
                 _buildCard(
                   icon: Icons.info_outline,
-                  title: 'Datos b\u00E1sicos',
+                  title: 'Informaci\u00F3n personal',
                   child: Column(
                     children: [
-                      _basicRow(
-                        Icons.cake,
-                        'Edad',
-                        edad > 0 ? '$edad a\u00F1os' : '-- a\u00F1os',
-                        Colors.orange,
-                        _abrirDatePicker,
-                      ),
-                      _basicRow(
-                        Icons.work,
-                        'Profesi\u00F3n',
-                        perfil['profesion'] ?? '',
-                        Colors.blue,
-                        () => _mostrarDialogoEdicion(
-                          'Profesi\u00F3n',
-                          perfil['profesion'] ?? '',
-                        ),
-                      ),
-                      _basicRow(
-                        Icons.school,
-                        'Educaci\u00F3n',
-                        perfil['educacion'] ?? '',
-                        Colors.purple,
-                        () => _mostrarSelectorOpciones('Educaci\u00F3n', [
-                          'Secundaria',
-                          'T\u00E9cnico',
-                          'Universidad',
-                          'Posgrado',
-                          'Doctorado',
-                        ]),
-                      ),
-                      _basicRow(
-                        Icons.language,
-                        'Idioma',
-                        perfil['idioma'] ?? '',
-                        Colors.teal,
-                        _mostrarIdiomasMultiples,
-                      ),
-                      _basicRow(
-                        Icons.auto_awesome,
-                        'Signo zodiacal',
-                        perfil['signoZodiacal'] ?? '',
-                        Colors.amber,
-                        () => _mostrarSelectorOpciones('Signo zodiacal', [
-                          'Aries',
-                          'Tauro',
-                          'G\u00E9minis',
-                          'C\u00E1ncer',
-                          'Leo',
-                          'Virgo',
-                          'Libra',
-                          'Escorpio',
-                          'Sagitario',
-                          'Capricornio',
-                          'Acuario',
-                          'Piscis',
-                        ]),
-                      ),
+                      if (edad > 0) _infoRow(Icons.cake, 'Edad', '$edad a\u00F1os', Colors.orange),
+                      if (perfil['profesion'] != null && perfil['profesion'].toString().isNotEmpty) _infoRow(Icons.work, 'Profesi\u00F3n', perfil['profesion'], Colors.blue),
+                      if (perfil['educacion'] != null && perfil['educacion'].toString().isNotEmpty) _infoRow(Icons.school, 'Educaci\u00F3n', perfil['educacion'], Colors.purple),
+                      if (perfil['idioma'] != null && perfil['idioma'].toString().isNotEmpty) _infoRow(Icons.language, 'Idioma', perfil['idioma'], Colors.teal),
+                      if (perfil['signoZodiacal'] != null && perfil['signoZodiacal'].toString().isNotEmpty) _infoRow(Icons.auto_awesome, 'Signo zodiacal', perfil['signoZodiacal'], Colors.amber),
+                      if (edad == 0 && perfil['profesion'] == null && perfil['educacion'] == null && perfil['idioma'] == null && perfil['signoZodiacal'] == null)
+                        const Text('Completa tus datos b\u00E1sicos', style: TextStyle(color: Colors.grey, fontSize: 14)),
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildCard(
-                  icon: Icons.search,
-                  title: '\u00BFQu\u00E9 busco?',
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          setState(() {
-                            _perfil!['objetivo'] = 'RELACION_SERIA';
-                          });
-                          try {
-                            await _api.editarPerfil({
-                              'objetivo': 'RELACION_SERIA',
-                            });
-                          } catch (e) {}
-                        },
-                        child: _buscoChip(
-                          'Relaci\u00F3n seria',
-                          perfil['objetivo'] == 'RELACION_SERIA',
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          setState(() {
-                            _perfil!['objetivo'] = 'AMISTAD';
-                          });
-                          try {
-                            await _api.editarPerfil({'objetivo': 'AMISTAD'});
-                          } catch (e) {}
-                        },
-                        child: _buscoChip(
-                          'Amistad',
-                          perfil['objetivo'] == 'AMISTAD',
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          setState(() {
-                            _perfil!['objetivo'] = 'CASUAL';
-                          });
-                          try {
-                            await _api.editarPerfil({'objetivo': 'CASUAL'});
-                          } catch (e) {}
-                        },
-                        child: _buscoChip(
-                          'Algo casual',
-                          perfil['objetivo'] == 'CASUAL',
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          setState(() {
-                            _perfil!['objetivo'] = 'NO_SE';
-                          });
-                          try {
-                            await _api.editarPerfil({'objetivo': 'NO_SE'});
-                          } catch (e) {}
-                        },
-                        child: _buscoChip(
-                          'No s\u00E9 a\u00FAn',
-                          perfil['objetivo'] == 'NO_SE',
-                        ),
-                      ),
-                    ],
+                if (intereses.isNotEmpty) ...[
+                  _buildCard(
+                    icon: Icons.favorite_outline,
+                    title: 'Mis intereses',
+                    child: Wrap(spacing: 8, runSpacing: 8, children: intereses.map((i) => _interestChip(i)).toList()),
                   ),
-                ),
-                const SizedBox(height: 12),
-                _buildCard(
-                  icon: Icons.favorite_outline,
-                  title: 'Mis intereses',
-                  child: intereses.isEmpty
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Agrega tus intereses',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: () =>
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Selector de intereses pr\u00F3ximamente',
-                                      ),
-                                      backgroundColor: primary,
-                                    ),
-                                  ),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: primary.withOpacity(0.08),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: primary,
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.add, size: 16, color: primary),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Agregar intereses',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            ...intereses.map((i) => _interestChip(i)),
-                            _addChip(),
-                          ],
-                        ),
-                ),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
+                ],
                 _buildCard(
                   icon: Icons.self_improvement,
                   title: 'Estilo de vida',
                   child: Column(
                     children: [
-                      _lifestyleRow(Icons.pets, 'Mascotas', Colors.blue, [
-                        'Perro',
-                        'Gato',
-                        'Ninguna',
-                        'Varios',
-                      ]),
-                      _lifestyleRow(Icons.local_bar, 'Alcohol', Colors.red, [
-                        'Nunca',
-                        'Socialmente',
-                        'Frecuentemente',
-                      ]),
-                      _lifestyleRow(
-                        Icons.smoking_rooms,
-                        'Tabaco',
-                        Colors.grey,
-                        ['No fumo', 'Ocasionalmente', 'Frecuentemente'],
-                      ),
-                      _lifestyleRow(
-                        Icons.fitness_center,
-                        'Ejercicio',
-                        Colors.orange,
-                        [
-                          'Nunca',
-                          'A veces',
-                          'Frecuentemente',
-                          'Todos los d\u00EDas',
-                        ],
-                      ),
-                      _lifestyleRow(
-                        Icons.child_care,
-                        '\u00BFTienes hijos?',
-                        Colors.pink,
-                        ['S\u00ED', 'No'],
-                      ),
-                      _lifestyleRow(
-                        Icons.baby_changing_station,
-                        '\u00BFQuieres hijos?',
-                        Colors.blue,
-                        ['S\u00ED', 'No', 'Quiz\u00E1s'],
-                      ),
-                      _lifestyleRow(
-                        Icons.church,
-                        'Religi\u00F3n',
-                        Colors.amber,
-                        [
-                          'Cristiano',
-                          'Cat\u00F3lico',
-                          'Muslim',
-                          'Jud\u00EDo',
-                          'Budista',
-                          'Otro',
-                          'Ninguna',
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildCard(
-                  icon: Icons.link,
-                  title: 'Redes sociales',
-                  child: Column(
-                    children: [
-                      _socialRow(
-                        FontAwesomeIcons.instagram,
-                        const Color(0xFFE1306C),
-                        'Instagram',
-                        'Conectar',
-                      ),
-                      _socialRow(
-                        FontAwesomeIcons.spotify,
-                        const Color(0xFF1DB954),
-                        'Spotify',
-                        'Conectar',
-                      ),
-                      _socialRow(
-                        FontAwesomeIcons.tiktok,
-                        Colors.black,
-                        'TikTok',
-                        'Conectar',
-                      ),
+                      if (perfil['mascotas'] != null && perfil['mascotas'].toString().isNotEmpty) _infoRow(Icons.pets, 'Mascotas', perfil['mascotas'], Colors.blue),
+                      if (perfil['alcohol'] != null && perfil['alcohol'].toString().isNotEmpty) _infoRow(Icons.local_bar, 'Alcohol', perfil['alcohol'], Colors.red),
+                      if (perfil['tabaco'] != null && perfil['tabaco'].toString().isNotEmpty) _infoRow(Icons.smoking_rooms, 'Tabaco', perfil['tabaco'], Colors.grey),
+                      if (perfil['ejercicio'] != null && perfil['ejercicio'].toString().isNotEmpty) _infoRow(Icons.fitness_center, 'Ejercicio', perfil['ejercicio'], Colors.orange),
+                      if (perfil['tieneHijos'] != null && perfil['tieneHijos'].toString().isNotEmpty) _infoRow(Icons.child_care, '\u00BFTienes hijos?', perfil['tieneHijos'], Colors.pink),
+                      if (perfil['quiereHijos'] != null && perfil['quiereHijos'].toString().isNotEmpty) _infoRow(Icons.baby_changing_station, '\u00BFQuieres hijos?', perfil['quiereHijos'], Colors.blue),
+                      if (perfil['religion'] != null && perfil['religion'].toString().isNotEmpty) _infoRow(Icons.church, 'Religi\u00F3n', perfil['religion'], Colors.amber),
+                      if (perfil['mascotas'] == null && perfil['alcohol'] == null && perfil['tabaco'] == null && perfil['ejercicio'] == null)
+                        const Text('Completa tu estilo de vida', style: TextStyle(color: Colors.grey, fontSize: 14)),
                     ],
                   ),
                 ),
@@ -951,56 +210,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _avatarPlaceholder() {
-    return Container(
-      color: Colors.grey[300],
-      child: const Center(
-        child: Icon(Icons.person, size: 50, color: Colors.grey),
-      ),
-    );
+    return Container(color: Colors.grey[300], child: const Center(child: Icon(Icons.person, size: 50, color: Colors.grey)));
   }
 
-  Widget _buildCard({
-    required IconData icon,
-    required String title,
-    required Widget child,
-    Widget? trailing,
-  }) {
+  Widget _buildCard({required IconData icon, required String title, required Widget child}) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      width: double.infinity, padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 2))]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(icon, color: primary, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-              if (trailing != null) trailing,
-            ],
-          ),
+          Row(children: [Icon(icon, color: primary, size: 18), const SizedBox(width: 8), Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))]),
           const SizedBox(height: 12),
           child,
         ],
@@ -1008,87 +228,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _addPhotoCell() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-      ),
-      child: const Center(
-        child: Icon(
-          Icons.add_photo_alternate_outlined,
-          color: Colors.grey,
-          size: 28,
-        ),
-      ),
-    );
-  }
-
-  Widget _basicRow(
-    IconData icon,
-    String label,
-    String value,
-    Color iconColor,
-    VoidCallback onTap,
-  ) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        splashColor: primary.withOpacity(0.1),
-        highlightColor: primary.withOpacity(0.05),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: iconColor),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
-                    Text(
-                      value.isEmpty ? 'Agregar' : value,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: value.isEmpty ? Colors.grey : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right, color: Colors.grey, size: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buscoChip(String label, bool selected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: selected ? primary.withOpacity(0.1) : const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: selected ? primary : Colors.grey.withOpacity(0.3),
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          color: selected ? primary : Colors.grey,
-          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-        ),
+  Widget _infoRow(IconData icon, String label, String value, Color iconColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: iconColor),
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black87))),
+        ],
       ),
     );
   }
@@ -1096,118 +246,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _interestChip(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: primary.withOpacity(0.3)),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 13,
-          color: primary,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _addChip() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.add, size: 14, color: Colors.grey),
-          SizedBox(width: 4),
-          Text('Agregar', style: TextStyle(fontSize: 13, color: Colors.grey)),
-        ],
-      ),
-    );
-  }
-
-  Widget _lifestyleRow(
-    IconData icon,
-    String label,
-    Color iconColor,
-    List<String> opciones,
-  ) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _mostrarSelectorOpciones(label, opciones),
-        borderRadius: BorderRadius.circular(12),
-        splashColor: primary.withOpacity(0.1),
-        highlightColor: primary.withOpacity(0.05),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: iconColor),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-              ),
-              const Text(
-                'Agregar',
-                style: TextStyle(fontSize: 13, color: Colors.grey),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right, color: Colors.grey, size: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _socialRow(
-    IconData icon,
-    Color iconColor,
-    String label,
-    String action,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: GestureDetector(
-        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Conectar $label pr\u00F3ximamente'),
-            backgroundColor: primary,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                FaIcon(icon, color: iconColor, size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-              ],
-            ),
-            Text(
-              action,
-              style: const TextStyle(
-                fontSize: 13,
-                color: primary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
+      decoration: BoxDecoration(color: primary.withOpacity(0.1), borderRadius: BorderRadius.circular(20), border: Border.all(color: primary.withOpacity(0.3))),
+      child: Text(label, style: const TextStyle(fontSize: 13, color: primary, fontWeight: FontWeight.w500)),
     );
   }
 }

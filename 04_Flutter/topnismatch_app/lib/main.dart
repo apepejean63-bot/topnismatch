@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'providers/auth_provider.dart';
@@ -8,6 +8,8 @@ import 'screens/home_screen.dart';
 import 'screens/create_profile_screen.dart';
 import 'screens/premium_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/edit_profile_screen.dart';
+import 'screens/editar_bio_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,9 @@ class TopnisMatchApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF4458)),
           useMaterial3: true,
+          bottomSheetTheme: const BottomSheetThemeData(
+            backgroundColor: Colors.white,
+          ),
         ),
         initialRoute: '/login',
         routes: {
