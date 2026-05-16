@@ -254,6 +254,7 @@ public class ProfileService {
                 .quiereHijos(perfil.getQuiereHijos())
                 .religion(perfil.getReligion())
                 .fechaNacimiento(perfil.getFechaNacimiento())
+                .fotoPrincipalUrl(perfil.getFotoPrincipalId() != null ? entityManager.createQuery("SELECT f.url FROM Foto f WHERE f.fotoId = :fotoId", String.class).setParameter("fotoId", perfil.getFotoPrincipalId()).getSingleResult() : null)
                 .build();
     }
 }
