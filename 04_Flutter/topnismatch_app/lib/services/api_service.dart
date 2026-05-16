@@ -59,7 +59,7 @@ class ApiService {
   Future<void> eliminarFoto(int orden) async {
     await _dio.delete(
       '/api/v1/profile/photos/$orden',
-      options: Options(headers: await _authHeaders()),
+      options: Options(),
     );
   }
 
@@ -67,7 +67,7 @@ class ApiService {
     await _dio.post(
       '/api/v1/profile/photos',
       data: {'url': url, 'orden': orden},
-      options: Options(headers: await _authHeaders()),
+      options: Options(),
     );
   }
 

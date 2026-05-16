@@ -168,7 +168,7 @@ public class ProfileService {
 
         if (request.getOrden() == 1) {
             entityManager.createNativeQuery(
-                            "UPDATE PERFIL SET foto_principal_id = :fotoId WHERE usuario_id = :userId")
+                            "UPDATE perfil SET foto_principal_id = :fotoId WHERE usuario_id = :userId")
                     .setParameter("fotoId", foto.getFotoId())
                     .setParameter("userId", usuarioId)
                     .executeUpdate();
@@ -199,7 +199,7 @@ public class ProfileService {
 
         if (orden == 1) {
             entityManager.createNativeQuery(
-                            "UPDATE PERFIL SET foto_principal_id = NULL WHERE usuario_id = :userId")
+                            "UPDATE perfil SET foto_principal_id = NULL WHERE usuario_id = :userId")
                     .setParameter("userId", usuarioId)
                     .executeUpdate();
         }
