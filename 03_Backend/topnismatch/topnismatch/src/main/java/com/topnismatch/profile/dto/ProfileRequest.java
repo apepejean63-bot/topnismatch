@@ -1,4 +1,4 @@
-package com.topnismatch.profile.dto;
+﻿package com.topnismatch.profile.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -72,4 +72,5 @@ public class ProfileRequest {
     private String religion;
 
     private String fechaNacimiento;
+    private String fotoPrincipalUrl;
 }

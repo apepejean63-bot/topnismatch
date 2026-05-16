@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:async';
 import '../services/api_service.dart';
 
@@ -217,6 +217,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
               onSubmitted: (_) => _enviarMensaje(),
+              enabled: true,
+              enableInteractiveSelection: true,
             ),
           ),
           const SizedBox(width: 8),
@@ -231,3 +233,4 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
+

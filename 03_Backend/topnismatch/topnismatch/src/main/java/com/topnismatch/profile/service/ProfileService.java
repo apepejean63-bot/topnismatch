@@ -1,4 +1,4 @@
-package com.topnismatch.profile.service;
+﻿package com.topnismatch.profile.service;
 
 import com.topnismatch.profile.dto.*;
 import com.topnismatch.profile.entity.*;
@@ -84,6 +84,16 @@ public class ProfileService {
         if (request.getReligion() != null) perfil.setReligion(request.getReligion());
         if (request.getObjetivo() != null) perfil.setObjetivo(request.getObjetivo());
         if (request.getFechaNacimiento() != null) perfil.setFechaNacimiento(request.getFechaNacimiento());
+        if (request.getFotoPrincipalUrl() != null) {
+            Foto foto = Foto.builder()
+                    .usuarioId(usuarioId)
+                    .url(request.getFotoPrincipalUrl())
+                    .orden(1)
+                    .build();
+            entityManager.persist(foto);
+            entityManager.flush();
+            perfil.setFotoPrincipalId(foto.getFotoId());
+        }
         entityManager.merge(perfil);
 
         return buildProfileResponse(perfil, usuarioId);
@@ -247,4 +257,5 @@ public class ProfileService {
                 .build();
     }
 }
+
 
