@@ -1,4 +1,4 @@
-﻿package com.topnismatch.profile.dto;
+package com.topnismatch.profile.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
