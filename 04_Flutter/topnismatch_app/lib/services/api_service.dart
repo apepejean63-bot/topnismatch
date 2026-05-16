@@ -1,4 +1,4 @@
-﻿import 'package:dio/dio.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
@@ -54,6 +54,21 @@ class ApiService {
   Future<Map<String, dynamic>> crearPerfil(Map<String, dynamic> data) async {
     final response = await _dio.post('/profile', data: data);
     return response.data;
+  }
+
+  Future<void> eliminarFoto(int orden) async {
+    await _dio.delete(
+      '/api/v1/profile/photos/$orden',
+      options: Options(headers: await _authHeaders()),
+    );
+  }
+
+  Future<void> agregarFoto(String url, int orden) async {
+    await _dio.post(
+      '/api/v1/profile/photos',
+      data: {'url': url, 'orden': orden},
+      options: Options(headers: await _authHeaders()),
+    );
   }
 
   Future<Map<String, dynamic>> editarPerfil(Map<String, dynamic> data) async {

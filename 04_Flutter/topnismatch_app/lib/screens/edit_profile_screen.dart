@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -68,6 +68,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  Future<void> _abrirGaleriaSlot(int orden) async {
+    try {
+      final image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (image == null) return;
+      setState(() => _isLoading = true);
+      final archivo = File(image.path);
+      final usuarioId = _perfil?['usuarioId'] ?? 0;
+      final url = await StorageService.subirFoto(archivo, usuarioId);
+      if (orden == 1) {
+        await _api.editarPerfil({'fotoPrincipalUrl': url});
+      } else {
+        await _api.agregarFoto(url, orden);
+      }
+      await _cargarPerfil();
+    } catch (e) {
+      if (mounted)
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            backgroundColor: Colors.white,
+            title: const Text('Error al subir foto'),
+            content: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   Future<void> _abrirGaleria() async {
     try {
       final image = await _picker.pickImage(
@@ -102,6 +142,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _eliminarFoto(int orden) async {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text('Eliminar foto'),
+        content: const Text('\u00BFQuieres eliminar esta foto?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                setState(() => _isLoading = true);
+                await _api.eliminarFoto(orden);
+                await _cargarPerfil();
+              } catch (e) {
+                if (mounted)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+              } finally {
+                setState(() => _isLoading = false);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _abrirEditarBio() async {
@@ -580,7 +659,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
@@ -721,29 +799,63 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         crossAxisSpacing: 8,
                         mainAxisSpacing: 8,
                         children: List.generate(6, (index) {
-                          if (index == 0 &&
-                              perfil['fotoPrincipalUrl'] != null) {
+                          final orden = index + 1;
+                          String? fotoUrl;
+                          if (orden == 1) {
+                            fotoUrl = perfil['fotoPrincipalUrl'];
+                          } else {
+                            final fotos = perfil['fotos'] as List? ?? [];
+                            final fotoEnSlot = fotos.firstWhere(
+                              (f) => f['orden'] == orden,
+                              orElse: () => null,
+                            );
+                            fotoUrl = fotoEnSlot?['url'];
+                          }
+                          if (fotoUrl != null) {
                             return GestureDetector(
-                              onTap: _abrirGaleria,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  perfil['fotoPrincipalUrl'],
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => _addPhotoCell(),
-                                ),
+                              onTap: () => _abrirGaleriaSlot(orden),
+                              onLongPress: () => _eliminarFoto(orden),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      fotoUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) =>
+                                          _addPhotoCell(),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
                           }
                           return GestureDetector(
-                            onTap: _abrirGaleria,
+                            onTap: () => _abrirGaleriaSlot(orden),
                             child: _addPhotoCell(),
                           );
                         }),
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Agrega hasta 6 fotos para destacar tu perfil',
+                        'Toca para cambiar \u2022 Mant\u00E9n presionado para eliminar',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.grey, fontSize: 12),
                       ),
