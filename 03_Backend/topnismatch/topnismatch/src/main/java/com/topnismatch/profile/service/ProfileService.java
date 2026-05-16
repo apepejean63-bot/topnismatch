@@ -204,7 +204,11 @@ public class ProfileService {
                     .executeUpdate();
         }
 
-        entityManager.remove(entityManager.contains(foto) ? foto : entityManager.merge(foto));
+        try {
+            entityManager.remove(entityManager.contains(foto) ? foto : entityManager.merge(foto));
+        } catch (Exception e) {
+            throw new RuntimeException("Error al eliminar foto: " + e.getMessage() + " causa: " + e.getCause());
+        }
     }
 
     private ProfileResponse buildProfileResponse(Perfil perfil, Long usuarioId) {
