@@ -85,14 +85,17 @@ public class ProfileService {
         if (request.getObjetivo() != null) perfil.setObjetivo(request.getObjetivo());
         if (request.getFechaNacimiento() != null) perfil.setFechaNacimiento(request.getFechaNacimiento());
         if (request.getFotoPrincipalUrl() != null) {
-            Foto foto = Foto.builder()
-                    .usuarioId(usuarioId)
-                    .url(request.getFotoPrincipalUrl())
-                    .orden(1)
-                    .build();
-            entityManager.persist(foto);
-            entityManager.flush();
-            perfil.setFotoPrincipalId(foto.getFotoId());
+            List<Foto> fotosExistentes = entityManager.createQuery("SELECT f FROM Foto f WHERE f.usuarioId = :userId AND f.orden = 1", Foto.class).setParameter("userId", usuarioId).getResultList();
+            if (!fotosExistentes.isEmpty()) {
+                fotosExistentes.get(0).setUrl(request.getFotoPrincipalUrl());
+                entityManager.merge(fotosExistentes.get(0));
+                perfil.setFotoPrincipalId(fotosExistentes.get(0).getFotoId());
+            } else {
+                Foto foto = Foto.builder().usuarioId(usuarioId).url(request.getFotoPrincipalUrl()).orden(1).build();
+                entityManager.persist(foto);
+                entityManager.flush();
+                perfil.setFotoPrincipalId(foto.getFotoId());
+            }
         }
         entityManager.merge(perfil);
 
