@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
@@ -49,12 +49,12 @@ class _HomeScreenState extends State<HomeScreen>
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('ðŸŽ‰ Â¡Es un Match!'),
-              content: const Text('Â¡Felicidades! Ahora pueden chatear.'),
+              title: const Text('\u{1F389} \u00A1Es un Match!'),
+              content: const Text('\u00A1Felicidades! Ahora pueden chatear.'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Â¡Genial!'),
+                  child: const Text('\u00A1Genial!'),
                 ),
               ],
             ),
@@ -86,6 +86,46 @@ class _HomeScreenState extends State<HomeScreen>
       _dragX = 0;
       _dragY = 0;
     });
+  }
+
+  void _confirmarEliminarMatch(BuildContext context, int matchId, String nombre) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text('Eliminar match'),
+        content: Text('\u00BFQuieres eliminar el match con $nombre?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await _api.eliminarMatch(matchId);
+                setState(() {});
+                if (mounted)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Match eliminado'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+              } catch (e) {
+                if (mounted)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -155,19 +195,14 @@ class _HomeScreenState extends State<HomeScreen>
             const Icon(Icons.search_off, size: 80, color: Colors.grey),
             const SizedBox(height: 16),
             const Text(
-              'No hay mÃ¡s perfiles por ahora',
+              'No hay m\u00E1s perfiles por ahora',
               style: TextStyle(fontSize: 18, color: Colors.grey),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _cargarPerfiles,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF4458),
-              ),
-              child: const Text(
-                'Recargar',
-                style: TextStyle(color: Colors.white),
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4458)),
+              child: const Text('Recargar', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -215,9 +250,7 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     Card(
                       elevation: 8,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       child: Stack(
                         children: [
                           Container(
@@ -233,22 +266,13 @@ class _HomeScreenState extends State<HomeScreen>
                                     child: Image.network(
                                       perfil['fotoPrincipalUrl'],
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
-                                          const Center(
-                                            child: Icon(
-                                              Icons.person,
-                                              size: 100,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
+                                      errorBuilder: (_, __, ___) => const Center(
+                                        child: Icon(Icons.person, size: 100, color: Colors.grey),
+                                      ),
                                     ),
                                   )
                                 : const Center(
-                                    child: Icon(
-                                      Icons.person,
-                                      size: 100,
-                                      color: Colors.grey,
-                                    ),
+                                    child: Icon(Icons.person, size: 100, color: Colors.grey),
                                   ),
                           ),
                           Positioned(
@@ -265,10 +289,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 gradient: LinearGradient(
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withOpacity(0.8),
-                                    Colors.transparent,
-                                  ],
+                                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
                                 ),
                               ),
                               child: Column(
@@ -276,87 +297,37 @@ class _HomeScreenState extends State<HomeScreen>
                                 children: [
                                   Text(
                                     '${perfil['nombre']}, ${perfil['edad']}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                                   ),
                                   if (perfil['ciudad'] != null)
-                                    Text(
-                                      'ðŸ“ ${perfil['ciudad']}',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                      ),
-                                    ),
+                                    Text('\u{1F4CD} ${perfil['ciudad']}', style: const TextStyle(color: Colors.white70)),
                                   if (perfil['bio'] != null)
-                                    Text(
-                                      perfil['bio'],
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                    Text(perfil['bio'], style: const TextStyle(color: Colors.white70), maxLines: 2, overflow: TextOverflow.ellipsis),
                                 ],
                               ),
                             ),
                           ),
                           if (isLiking)
                             Positioned(
-                              top: 30,
-                              left: 20,
+                              top: 30, left: 20,
                               child: Transform.rotate(
                                 angle: -0.3,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.green,
-                                      width: 4,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'LIKE',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 4), borderRadius: BorderRadius.circular(8)),
+                                  child: const Text('LIKE', style: TextStyle(color: Colors.green, fontSize: 32, fontWeight: FontWeight.bold)),
                                 ),
                               ),
                             ),
                           if (isDisliking)
                             Positioned(
-                              top: 30,
-                              right: 20,
+                              top: 30, right: 20,
                               child: Transform.rotate(
                                 angle: 0.3,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.red,
-                                      width: 4,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'NOPE',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(border: Border.all(color: Colors.red, width: 4), borderRadius: BorderRadius.circular(8)),
+                                  child: const Text('NOPE', style: TextStyle(color: Colors.red, fontSize: 32, fontWeight: FontWeight.bold)),
                                 ),
                               ),
                             ),
@@ -384,11 +355,7 @@ class _HomeScreenState extends State<HomeScreen>
                 heroTag: 'like',
                 onPressed: () => _darLike(perfil['usuarioId']),
                 backgroundColor: const Color(0xFFFF4458),
-                child: const Icon(
-                  Icons.favorite,
-                  color: Colors.white,
-                  size: 48,
-                ),
+                child: const Icon(Icons.favorite, color: Colors.white, size: 48),
               ),
               FloatingActionButton(
                 heroTag: 'superlike',
@@ -415,9 +382,7 @@ class _HomeScreenState extends State<HomeScreen>
       future: _api.getMisMatches(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFFFF4458)),
-          );
+          return const Center(child: CircularProgressIndicator(color: Color(0xFFFF4458)));
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(
@@ -426,10 +391,7 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 Icon(Icons.favorite_border, size: 80, color: Colors.grey),
                 SizedBox(height: 16),
-                Text(
-                  'AÃºn no tienes matches',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
+                Text('A\u00FAn no tienes matches', style: TextStyle(fontSize: 18, color: Colors.grey)),
               ],
             ),
           );
@@ -439,32 +401,89 @@ class _HomeScreenState extends State<HomeScreen>
           itemCount: snapshot.data!.length,
           itemBuilder: (context, index) {
             final match = snapshot.data![index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: const Color(0xFFFF4458),
-                  child: Text(
-                    match['otroUsuarioNombre'][0].toUpperCase(),
-                    style: const TextStyle(color: Colors.white),
-                  ),
+            return Dismissible(
+              key: Key(match['matchId'].toString()),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 20),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                title: Text(match['otroUsuarioNombre']),
-                subtitle: Text(
-                  'Compatibilidad: ${match['compatibilidad'].toStringAsFixed(0)}%',
-                ),
-                trailing: const Icon(Icons.chat, color: Color(0xFFFF4458)),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatScreen(
-                        matchId: match['matchId'],
-                        otroUsuarioNombre: match['otroUsuarioNombre'],
+                child: const Icon(Icons.delete, color: Colors.white, size: 30),
+              ),
+              confirmDismiss: (_) async {
+                bool confirmed = false;
+                await showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    backgroundColor: Colors.white,
+                    title: const Text('Eliminar match'),
+                    content: Text('\u00BFQuieres eliminar el match con ${match['otroUsuarioNombre']}?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () { confirmed = false; Navigator.pop(context); },
+                        child: const Text('Cancelar'),
                       ),
+                      ElevatedButton(
+                        onPressed: () { confirmed = true; Navigator.pop(context); },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                );
+                return confirmed;
+              },
+              onDismissed: (_) async {
+                try {
+                  await _api.eliminarMatch(match['matchId']);
+                  if (mounted)
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Match eliminado'), backgroundColor: Colors.green),
+                    );
+                } catch (e) {
+                  if (mounted)
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                    );
+                }
+              },
+              child: Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: const Color(0xFFFF4458),
+                    child: Text(
+                      match['otroUsuarioNombre'][0].toUpperCase(),
+                      style: const TextStyle(color: Colors.white),
                     ),
-                  );
-                },
+                  ),
+                  title: Text(match['otroUsuarioNombre']),
+                  subtitle: Text('Compatibilidad: ${match['compatibilidad'].toStringAsFixed(0)}%'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        onPressed: () => _confirmarEliminarMatch(context, match['matchId'], match['otroUsuarioNombre']),
+                      ),
+                      const Icon(Icons.chat, color: Color(0xFFFF4458)),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatScreen(
+                          matchId: match['matchId'],
+                          otroUsuarioNombre: match['otroUsuarioNombre'],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             );
           },
@@ -473,7 +492,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-    Widget _buildPerfil() {
+  Widget _buildPerfil() {
     return const ProfileScreen();
   }
 
@@ -487,7 +506,3 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 }
-
-
-
-

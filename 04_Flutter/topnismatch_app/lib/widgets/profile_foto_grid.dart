@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
@@ -62,7 +63,51 @@ class ProfileFotoGrid extends StatelessWidget {
     }
   }
 
-  void _eliminarFoto(BuildContext context, int orden) {
+  void _mostrarOpciones(BuildContext context, int orden, String fotoUrl) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.edit, color: primary),
+              title: const Text('Cambiar foto'),
+              onTap: () {
+                Navigator.pop(context);
+                _abrirGaleriaSlot(context, orden);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Eliminar foto', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                _confirmarEliminar(context, orden);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmarEliminar(BuildContext context, int orden) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -101,6 +146,75 @@ class ProfileFotoGrid extends StatelessWidget {
     );
   }
 
+  void _verFotoCompleta(BuildContext context, int orden, String fotoUrl) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            InteractiveViewer(
+              child: Center(
+                child: CachedNetworkImage(
+                  imageUrl: fotoUrl,
+                  fit: BoxFit.contain,
+                  placeholder: (_, __) => const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                  errorWidget: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white, size: 80),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 16,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            Positioned(
+              bottom: 32,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _abrirGaleriaSlot(context, orden);
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Cambiar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _confirmarEliminar(context, orden);
+                    },
+                    icon: const Icon(Icons.delete),
+                    label: const Text('Eliminar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _addPhotoCell() {
     return Container(
       decoration: BoxDecoration(
@@ -114,6 +228,23 @@ class ProfileFotoGrid extends StatelessWidget {
           color: Colors.grey,
           size: 28,
         ),
+      ),
+    );
+  }
+
+  Widget _fotoCell(String url) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => Container(
+          color: Colors.grey[200],
+          child: const Center(
+            child: CircularProgressIndicator(color: Color(0xFFFF4458), strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (_, __, ___) => _addPhotoCell(),
       ),
     );
   }
@@ -142,38 +273,11 @@ class ProfileFotoGrid extends StatelessWidget {
               fotoUrl = fotoEnSlot?['url'];
             }
             if (fotoUrl != null) {
+              final url = fotoUrl;
               return GestureDetector(
-                onTap: () => _abrirGaleriaSlot(context, orden),
-                onLongPress: () => _eliminarFoto(context, orden),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        fotoUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _addPhotoCell(),
-                      ),
-                    ),
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                onTap: () => _verFotoCompleta(context, orden, url),
+                onLongPress: () => _mostrarOpciones(context, orden, url),
+                child: _fotoCell(url),
               );
             }
             return GestureDetector(
@@ -184,7 +288,7 @@ class ProfileFotoGrid extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Toca para cambiar \u2022 Mant\u00E9n presionado para eliminar',
+          'Toca para ver \u2022 Mant\u00E9n presionado para opciones',
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey, fontSize: 12),
         ),

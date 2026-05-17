@@ -98,6 +98,10 @@ class ApiService {
     return response.data;
   }
 
+  Future<void> eliminarMatch(int matchId) async {
+    await _dio.delete('/matches/$matchId');
+  }
+
   Future<List<dynamic>> getMensajes(int matchId) async {
     final response = await _dio.get('/messages/$matchId');
     return response.data;
