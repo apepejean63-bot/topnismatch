@@ -108,6 +108,47 @@ public class SwipeService {
                     .build());
         }
 
+        if (perfiles.isEmpty()) {
+            // Si no hay perfiles nuevos, reiniciar ciclo mostrando todos
+            List<Object[]> resultadosReinicio = entityManager.createNativeQuery(
+                    "SELECT u.usuario_id, u.nombre, u.fecha_nacimiento, u.genero, " +
+                    "p.perfil_id, p.bio, p.ciudad, p.intereses, p.foto_principal_id " +
+                    "FROM USUARIO u JOIN PERFIL p ON u.usuario_id = p.usuario_id " +
+                    "WHERE u.usuario_id != :userId AND u.activo = 1 " +
+                    "AND DATE_PART('year', AGE(u.fecha_nacimiento)) BETWEEN :edadMin AND :edadMax " +
+                    "ORDER BY RANDOM() LIMIT 20")
+                    .setParameter("userId", usuarioId)
+                    .setParameter("edadMin", edadMin)
+                    .setParameter("edadMax", edadMax)
+                    .getResultList();
+            for (Object[] row : resultadosReinicio) {
+                Long uid = ((Number) row[0]).longValue();
+                String nombre = (String) row[1];
+                java.util.Date fechaNac = (java.util.Date) row[2];
+                int edad = calcularEdad(fechaNac);
+                Long perfilId = ((Number) row[4]).longValue();
+                String bio = (String) row[5];
+                String ciudad = (String) row[6];
+                String intereses = (String) row[7];
+                Long fotoPrincipalId = row[8] != null ? ((Number) row[8]).longValue() : null;
+                String fotoPrincipalUrl = null;
+                if (fotoPrincipalId != null) {
+                    List<String> urls = entityManager.createNativeQuery(
+                            "SELECT url FROM FOTO WHERE foto_id = :fotoId")
+                            .setParameter("fotoId", fotoPrincipalId).getResultList();
+                    fotoPrincipalUrl = urls.isEmpty() ? null : urls.get(0);
+                }
+                if (generoBuscado != null) {
+                    String generoUsuario = (String) row[3];
+                    if (!generoBuscado.equals(generoUsuario)) continue;
+                }
+                perfiles.add(DiscoverResponse.builder()
+                        .usuarioId(uid).perfilId(perfilId).nombre(nombre).edad(edad)
+                        .bio(bio).ciudad(ciudad).intereses(intereses)
+                        .fotoPrincipalUrl(fotoPrincipalUrl).fotosUrls(new java.util.ArrayList<>())
+                        .build());
+            }
+        }
         return perfiles;
     }
 

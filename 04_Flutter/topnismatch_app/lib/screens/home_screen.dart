@@ -88,7 +88,11 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  void _confirmarEliminarMatch(BuildContext context, int matchId, String nombre) {
+  void _confirmarEliminarMatch(
+    BuildContext context,
+    int matchId,
+    String nombre,
+  ) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -116,12 +120,18 @@ class _HomeScreenState extends State<HomeScreen>
               } catch (e) {
                 if (mounted)
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
                   );
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -188,25 +198,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
 
     if (_perfiles.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.search_off, size: 80, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'No hay m\u00E1s perfiles por ahora',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _cargarPerfiles,
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4458)),
-              child: const Text('Recargar', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      );
+      return _buildEmptyDiscover();
     }
 
     final perfil = _perfiles[0];
@@ -250,7 +242,9 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     Card(
                       elevation: 8,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       child: Stack(
                         children: [
                           Container(
@@ -266,13 +260,22 @@ class _HomeScreenState extends State<HomeScreen>
                                     child: Image.network(
                                       perfil['fotoPrincipalUrl'],
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Center(
-                                        child: Icon(Icons.person, size: 100, color: Colors.grey),
-                                      ),
+                                      errorBuilder: (_, __, ___) =>
+                                          const Center(
+                                            child: Icon(
+                                              Icons.person,
+                                              size: 100,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
                                     ),
                                   )
                                 : const Center(
-                                    child: Icon(Icons.person, size: 100, color: Colors.grey),
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 100,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                           ),
                           Positioned(
@@ -289,7 +292,10 @@ class _HomeScreenState extends State<HomeScreen>
                                 gradient: LinearGradient(
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
-                                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                                  colors: [
+                                    Colors.black.withOpacity(0.8),
+                                    Colors.transparent,
+                                  ],
                                 ),
                               ),
                               child: Column(
@@ -297,37 +303,87 @@ class _HomeScreenState extends State<HomeScreen>
                                 children: [
                                   Text(
                                     '${perfil['nombre']}, ${perfil['edad']}',
-                                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   if (perfil['ciudad'] != null)
-                                    Text('\u{1F4CD} ${perfil['ciudad']}', style: const TextStyle(color: Colors.white70)),
+                                    Text(
+                                      '\u{1F4CD} ${perfil['ciudad']}',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
+                                    ),
                                   if (perfil['bio'] != null)
-                                    Text(perfil['bio'], style: const TextStyle(color: Colors.white70), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                    Text(
+                                      perfil['bio'],
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                 ],
                               ),
                             ),
                           ),
                           if (isLiking)
                             Positioned(
-                              top: 30, left: 20,
+                              top: 30,
+                              left: 20,
                               child: Transform.rotate(
                                 angle: -0.3,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 4), borderRadius: BorderRadius.circular(8)),
-                                  child: const Text('LIKE', style: TextStyle(color: Colors.green, fontSize: 32, fontWeight: FontWeight.bold)),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.green,
+                                      width: 4,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'LIKE',
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           if (isDisliking)
                             Positioned(
-                              top: 30, right: 20,
+                              top: 30,
+                              right: 20,
                               child: Transform.rotate(
                                 angle: 0.3,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(border: Border.all(color: Colors.red, width: 4), borderRadius: BorderRadius.circular(8)),
-                                  child: const Text('NOPE', style: TextStyle(color: Colors.red, fontSize: 32, fontWeight: FontWeight.bold)),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.red,
+                                      width: 4,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'NOPE',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -355,7 +411,11 @@ class _HomeScreenState extends State<HomeScreen>
                 heroTag: 'like',
                 onPressed: () => _darLike(perfil['usuarioId']),
                 backgroundColor: const Color(0xFFFF4458),
-                child: const Icon(Icons.favorite, color: Colors.white, size: 48),
+                child: const Icon(
+                  Icons.favorite,
+                  color: Colors.white,
+                  size: 48,
+                ),
               ),
               FloatingActionButton(
                 heroTag: 'superlike',
@@ -377,12 +437,41 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  Widget _buildEmptyDiscover() {
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) _cargarPerfiles();
+    });
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.auto_awesome, size: 80, color: Color(0xFFFF4458)),
+          const SizedBox(height: 24),
+          const Text(
+            '\u2728 Has visto todos los perfiles',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Estamos buscando m\u00E1s personas para ti...',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          const CircularProgressIndicator(color: Color(0xFFFF4458)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMatches() {
     return FutureBuilder<List<dynamic>>(
       future: _api.getMisMatches(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: Color(0xFFFF4458)));
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFFF4458)),
+          );
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(
@@ -391,7 +480,10 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 Icon(Icons.favorite_border, size: 80, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('A\u00FAn no tienes matches', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  'A\u00FAn no tienes matches',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -420,16 +512,29 @@ class _HomeScreenState extends State<HomeScreen>
                   builder: (_) => AlertDialog(
                     backgroundColor: Colors.white,
                     title: const Text('Eliminar match'),
-                    content: Text('\u00BFQuieres eliminar el match con ${match['otroUsuarioNombre']}?'),
+                    content: Text(
+                      '\u00BFQuieres eliminar el match con ${match['otroUsuarioNombre']}?',
+                    ),
                     actions: [
                       TextButton(
-                        onPressed: () { confirmed = false; Navigator.pop(context); },
+                        onPressed: () {
+                          confirmed = false;
+                          Navigator.pop(context);
+                        },
                         child: const Text('Cancelar'),
                       ),
                       ElevatedButton(
-                        onPressed: () { confirmed = true; Navigator.pop(context); },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+                        onPressed: () {
+                          confirmed = true;
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        child: const Text(
+                          'Eliminar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ],
                   ),
@@ -441,12 +546,18 @@ class _HomeScreenState extends State<HomeScreen>
                   await _api.eliminarMatch(match['matchId']);
                   if (mounted)
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Match eliminado'), backgroundColor: Colors.green),
+                      const SnackBar(
+                        content: Text('Match eliminado'),
+                        backgroundColor: Colors.green,
+                      ),
                     );
                 } catch (e) {
                   if (mounted)
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: Colors.red,
+                      ),
                     );
                 }
               },
@@ -461,13 +572,22 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   title: Text(match['otroUsuarioNombre']),
-                  subtitle: Text('Compatibilidad: ${match['compatibilidad'].toStringAsFixed(0)}%'),
+                  subtitle: Text(
+                    'Compatibilidad: ${match['compatibilidad'].toStringAsFixed(0)}%',
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () => _confirmarEliminarMatch(context, match['matchId'], match['otroUsuarioNombre']),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: () => _confirmarEliminarMatch(
+                          context,
+                          match['matchId'],
+                          match['otroUsuarioNombre'],
+                        ),
                       ),
                       const Icon(Icons.chat, color: Color(0xFFFF4458)),
                     ],
