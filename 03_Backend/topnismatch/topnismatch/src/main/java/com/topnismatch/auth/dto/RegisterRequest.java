@@ -9,7 +9,7 @@ import lombok.*;
 public class RegisterRequest {
     @NotBlank(message = "El nombre es obligatorio")
     @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres")
-    @Pattern(regexp = "^[a-zA-Z\u00e0-\u00fc\u00c0-\u00dc ]+$", message = "El nombre solo puede contener letras y espacios")
+    @Pattern(regexp = "^[\\p{L} ]+$", message = "El nombre solo puede contener letras y espacios")
     private String nombre;
 
     @NotBlank(message = "El email es obligatorio")

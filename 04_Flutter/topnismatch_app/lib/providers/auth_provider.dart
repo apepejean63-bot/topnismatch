@@ -54,7 +54,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = 'Error al registrarse. Intenta de nuevo.';
+      _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
       return false;
