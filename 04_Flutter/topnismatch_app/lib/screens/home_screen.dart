@@ -128,10 +128,7 @@ class _HomeScreenState extends State<HomeScreen>
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text(
-              'Eliminar',
-              style: TextStyle(color: Colors.white),
-            ),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -262,20 +259,12 @@ class _HomeScreenState extends State<HomeScreen>
                                       fit: BoxFit.cover,
                                       errorBuilder: (_, __, ___) =>
                                           const Center(
-                                            child: Icon(
-                                              Icons.person,
-                                              size: 100,
-                                              color: Colors.grey,
-                                            ),
+                                            child: Icon(Icons.person, size: 100, color: Colors.grey),
                                           ),
                                     ),
                                   )
                                 : const Center(
-                                    child: Icon(
-                                      Icons.person,
-                                      size: 100,
-                                      color: Colors.grey,
-                                    ),
+                                    child: Icon(Icons.person, size: 100, color: Colors.grey),
                                   ),
                           ),
                           Positioned(
@@ -312,16 +301,12 @@ class _HomeScreenState extends State<HomeScreen>
                                   if (perfil['ciudad'] != null)
                                     Text(
                                       '\u{1F4CD} ${perfil['ciudad']}',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                      ),
+                                      style: const TextStyle(color: Colors.white70),
                                     ),
                                   if (perfil['bio'] != null)
                                     Text(
                                       perfil['bio'],
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                      ),
+                                      style: const TextStyle(color: Colors.white70),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -333,27 +318,14 @@ class _HomeScreenState extends State<HomeScreen>
                             Positioned(
                               top: 30,
                               left: 20,
-                              child: Transform.rotate(
-                                angle: -0.3,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.green,
-                                      width: 4,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    '\u2764',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                              child: Opacity(
+                                opacity: (_dragX / 150).clamp(0.0, 1.0),
+                                child: Transform.rotate(
+                                  angle: -0.3,
+                                  child: Icon(
+                                    Icons.favorite,
+                                    color: const Color(0xFFFF4458),
+                                    size: 30 + (_dragX / 4).clamp(0.0, 70.0),
                                   ),
                                 ),
                               ),
@@ -362,27 +334,14 @@ class _HomeScreenState extends State<HomeScreen>
                             Positioned(
                               top: 30,
                               right: 20,
-                              child: Transform.rotate(
-                                angle: 0.3,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.red,
-                                      width: 4,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    '\u2716',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                              child: Opacity(
+                                opacity: ((-_dragX) / 150).clamp(0.0, 1.0),
+                                child: Transform.rotate(
+                                  angle: 0.3,
+                                  child: Icon(
+                                    Icons.close,
+                                    color: Colors.orange,
+                                    size: 30 + ((-_dragX) / 4).clamp(0.0, 70.0),
                                   ),
                                 ),
                               ),
@@ -405,17 +364,13 @@ class _HomeScreenState extends State<HomeScreen>
                 heroTag: 'dislike',
                 onPressed: () => _darDislike(perfil['usuarioId']),
                 backgroundColor: Colors.white,
-                child: const Icon(Icons.close, color: Colors.red, size: 36),
+                child: const Icon(Icons.close, color: Colors.orange, size: 36),
               ),
               FloatingActionButton(
-                heroTag: '\u2764',
+                heroTag: 'like',
                 onPressed: () => _darLike(perfil['usuarioId']),
                 backgroundColor: const Color(0xFFFF4458),
-                child: const Icon(
-                  Icons.favorite,
-                  color: Colors.white,
-                  size: 36,
-                ),
+                child: const Icon(Icons.favorite, color: Colors.white, size: 36),
               ),
               FloatingActionButton(
                 heroTag: 'superlike',
@@ -437,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-    Widget _buildEmptyDiscover() {
+  Widget _buildEmptyDiscover() {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) _cargarPerfiles();
     });
@@ -525,13 +480,8 @@ class _HomeScreenState extends State<HomeScreen>
                           confirmed = true;
                           Navigator.pop(context);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        child: const Text(
-                          'Eliminar',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
@@ -543,18 +493,12 @@ class _HomeScreenState extends State<HomeScreen>
                   await _api.eliminarMatch(match['matchId']);
                   if (mounted)
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Match eliminado'),
-                        backgroundColor: Colors.green,
-                      ),
+                      const SnackBar(content: Text('Match eliminado'), backgroundColor: Colors.green),
                     );
                 } catch (e) {
                   if (mounted)
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: Colors.red,
-                      ),
+                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
                     );
                 }
               },
@@ -576,10 +520,7 @@ class _HomeScreenState extends State<HomeScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.red,
-                        ),
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
                         onPressed: () => _confirmarEliminarMatch(
                           context,
                           match['matchId'],

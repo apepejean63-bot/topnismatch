@@ -50,7 +50,23 @@ public class ProfileService {
     }
 
     @Transactional
+    private static final java.util.List<String> PALABRAS_PROHIBIDAS = java.util.List.of(
+        "telegram", "whatsapp", "onlyfans", "sexo", "dinero", "instagram.com",
+        "t.me", "http://", "https://", "www.", "signal", "snapchat"
+    );
+
+    private void validarBio(String bio) {
+        if (bio == null) return;
+        String bioLower = bio.toLowerCase();
+        for (String palabra : PALABRAS_PROHIBIDAS) {
+            if (bioLower.contains(palabra)) {
+                throw new RuntimeException("La bio contiene contenido no permitido: " + palabra);
+            }
+        }
+    }
+
     public ProfileResponse editarPerfil(Long usuarioId, ProfileRequest request) {
+        if (request.getBio() != null) validarBio(request.getBio());
 
         List<Perfil> perfiles = entityManager.createQuery(
                         "SELECT p FROM Perfil p WHERE p.usuarioId = :userId",

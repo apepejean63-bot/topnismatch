@@ -1,17 +1,15 @@
 package com.topnismatch.auth.dto;
-
 import jakarta.validation.constraints.*;
 import lombok.*;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class RegisterRequest {
-
     @NotBlank(message = "El nombre es obligatorio")
-    @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
+    @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres")
+    @Pattern(regexp = "^[a-zA-Z\u00e0-\u00fc\u00c0-\u00dc ]+$", message = "El nombre solo puede contener letras y espacios")
     private String nombre;
 
     @NotBlank(message = "El email es obligatorio")
@@ -21,13 +19,13 @@ public class RegisterRequest {
 
     @NotBlank(message = "La contrasena es obligatoria")
     @Size(min = 8, max = 100, message = "La contrasena debe tener minimo 8 caracteres")
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[0-9]).+$", message = "La contrasena debe tener al menos una mayuscula y un numero")
     private String password;
 
     @NotNull(message = "La fecha de nacimiento es obligatoria")
     private String fechaNacimiento;
 
     @NotBlank(message = "El genero es obligatorio")
-    @Pattern(regexp = "MASCULINO|FEMENINO|NO_BINARIO|PREFIERO_NO_DECIR",
-             message = "Genero invalido")
+    @Pattern(regexp = "MASCULINO|FEMENINO|NO_BINARIO|PREFIERO_NO_DECIR", message = "Genero invalido")
     private String genero;
 }
