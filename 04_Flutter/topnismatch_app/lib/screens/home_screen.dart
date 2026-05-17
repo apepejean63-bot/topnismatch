@@ -348,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Text(
-                                    'LIKE',
+                                    '\u2764',
                                     style: TextStyle(
                                       color: Colors.green,
                                       fontSize: 32,
@@ -377,7 +377,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Text(
-                                    'NOPE',
+                                    '\u2716',
                                     style: TextStyle(
                                       color: Colors.red,
                                       fontSize: 32,
@@ -407,14 +407,14 @@ class _HomeScreenState extends State<HomeScreen>
                 backgroundColor: Colors.white,
                 child: const Icon(Icons.close, color: Colors.red, size: 36),
               ),
-              FloatingActionButton.large(
-                heroTag: 'like',
+              FloatingActionButton(
+                heroTag: '\u2764',
                 onPressed: () => _darLike(perfil['usuarioId']),
                 backgroundColor: const Color(0xFFFF4458),
                 child: const Icon(
                   Icons.favorite,
                   color: Colors.white,
-                  size: 48,
+                  size: 36,
                 ),
               ),
               FloatingActionButton(
@@ -437,8 +437,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildEmptyDiscover() {
-    Future.delayed(const Duration(seconds: 3), () {
+    Widget _buildEmptyDiscover() {
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) _cargarPerfiles();
     });
     return Center(
@@ -448,17 +448,14 @@ class _HomeScreenState extends State<HomeScreen>
           const Icon(Icons.auto_awesome, size: 80, color: Color(0xFFFF4458)),
           const SizedBox(height: 24),
           const Text(
-            '\u2728 Has visto todos los perfiles',
+            '\u2728 Mostr\u00E1ndote m\u00E1s personas...',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           const Text(
-            'Estamos buscando m\u00E1s personas para ti...',
+            'Encontramos m\u00E1s personas para ti',
             style: TextStyle(fontSize: 14, color: Colors.grey),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
-          const CircularProgressIndicator(color: Color(0xFFFF4458)),
         ],
       ),
     );
