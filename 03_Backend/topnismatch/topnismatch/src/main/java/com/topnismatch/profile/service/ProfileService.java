@@ -49,7 +49,6 @@ public class ProfileService {
         return buildProfileResponse(perfil, usuarioId);
     }
 
-    @Transactional
     private static final java.util.List<String> PALABRAS_PROHIBIDAS = java.util.List.of(
         "telegram", "whatsapp", "onlyfans", "sexo", "dinero", "instagram.com",
         "t.me", "http://", "https://", "www.", "signal", "snapchat"
