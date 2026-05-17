@@ -9,7 +9,6 @@ import lombok.*;
 public class RegisterRequest {
     @NotBlank(message = "El nombre es obligatorio")
     @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres")
-    @Pattern(regexp = "^[\\p{L} ]+$", message = "El nombre solo puede contener letras y espacios")
     private String nombre;
 
     @NotBlank(message = "El email es obligatorio")
@@ -19,7 +18,6 @@ public class RegisterRequest {
 
     @NotBlank(message = "La contrasena es obligatoria")
     @Size(min = 8, max = 100, message = "La contrasena debe tener minimo 8 caracteres")
-    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[0-9]).+$", message = "La contrasena debe tener al menos una mayuscula y un numero")
     private String password;
 
     @NotNull(message = "La fecha de nacimiento es obligatoria")
