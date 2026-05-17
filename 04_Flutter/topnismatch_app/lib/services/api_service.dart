@@ -57,17 +57,19 @@ class ApiService {
   }
 
   Future<void> eliminarFoto(int orden) async {
-    await _dio.delete(
-      '/api/v1/profile/photos/$orden',
-      options: Options(),
+    final response = await _dio.delete(
+      '/profile/photos/$orden',
+      options: Options(validateStatus: (status) => true),
     );
+    if (response.statusCode != 204 && response.statusCode != 200) {
+      throw Exception('Error ${response.statusCode}: ${response.data}');
+    }
   }
 
   Future<void> agregarFoto(String url, int orden) async {
     await _dio.post(
-      '/api/v1/profile/photos',
+      '/profile/photos',
       data: {'url': url, 'orden': orden},
-      options: Options(),
     );
   }
 
