@@ -41,7 +41,7 @@ public class ProfileService {
                 .edadMaxBuscada(request.getEdadMaxBuscada() != null ? request.getEdadMaxBuscada() : 99)
                 .distanciaMaxKm(request.getDistanciaMaxKm() != null ? request.getDistanciaMaxKm() : 50)
                 .generoBuscado(request.getGeneroBuscado())
-                .fechaNacimiento(entityManager.createQuery("SELECT u.fechaNacimiento FROM Usuario u WHERE u.usuarioId = :userId", String.class).setParameter("userId", usuarioId).getSingleResult())
+                .fechaNacimiento(entityManager.createQuery("SELECT CAST(u.fechaNacimiento AS string) FROM Usuario u WHERE u.usuarioId = :userId", String.class).setParameter("userId", usuarioId).getSingleResult())
                 .build();
 
         entityManager.persist(perfil);
