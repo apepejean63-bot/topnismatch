@@ -64,6 +64,7 @@ public class ProfileService {
         }
     }
 
+    @Transactional
     public ProfileResponse editarPerfil(Long usuarioId, ProfileRequest request) {
         if (request.getBio() != null) validarBio(request.getBio());
 

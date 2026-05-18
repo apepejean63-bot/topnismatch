@@ -33,7 +33,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = e.toString().contains("400") ? "Este email ya est\u00E1 registrado" : e.toString();
       _isLoading = false;
       notifyListeners();
       return false;
@@ -54,7 +54,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = e.toString().contains("400") ? "Este email ya est\u00E1 registrado" : e.toString();
       _isLoading = false;
       notifyListeners();
       return false;

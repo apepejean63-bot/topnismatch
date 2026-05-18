@@ -50,6 +50,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
+  String _formatearFecha(DateTime fecha) {
+    final year = fecha.year.toString();
+    final month = fecha.month.toString().padLeft(2, '0');
+    final day = fecha.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
+  String _mostrarFecha(DateTime fecha) {
+    final day = fecha.day.toString().padLeft(2, '0');
+    final month = fecha.month.toString().padLeft(2, '0');
+    final year = fecha.year.toString();
+    return '$day/$month/$year';
+  }
+
   Future<void> _seleccionarFecha() async {
     final fecha = await showDatePicker(
       context: context,
@@ -83,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'nombre': _nombreController.text.trim(),
       'email': _emailController.text.trim(),
       'password': _passwordController.text.trim(),
-      'fechaNacimiento': _fechaNacimiento!.toIso8601String(),
+      'fechaNacimiento': _formatearFecha(_fechaNacimiento!),
       'genero': _generoSeleccionado,
     });
 
@@ -147,7 +161,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Nombre
                 TextFormField(
                   controller: _nombreController,
                   validator: _validarNombre,
@@ -156,7 +169,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Email
                 TextFormField(
                   controller: _emailController,
                   validator: _validarEmail,
@@ -166,7 +178,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Password
                 TextFormField(
                   controller: _passwordController,
                   validator: _validarPassword,
@@ -184,7 +195,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Fecha nacimiento
                 GestureDetector(
                   onTap: _seleccionarFecha,
                   child: Container(
@@ -199,7 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(width: 12),
                         Text(
                           _fechaNacimiento != null
-                              ? '${_fechaNacimiento!.day}/${_fechaNacimiento!.month}/${_fechaNacimiento!.year}'
+                              ? _mostrarFecha(_fechaNacimiento!)
                               : 'Fecha de nacimiento',
                           style: TextStyle(
                             color: _fechaNacimiento != null ? Colors.white : Colors.white60,
@@ -212,7 +222,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Género
                 DropdownButtonFormField<String>(
                   value: _generoSeleccionado,
                   dropdownColor: const Color(0xFFFF4458),
@@ -227,7 +236,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 8),
 
-                // Error
                 if (auth.errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
@@ -240,7 +248,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 24),
 
-                // Botón registro
                 ElevatedButton(
                   onPressed: auth.isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
