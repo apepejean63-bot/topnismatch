@@ -126,4 +126,93 @@ class PremiumServiceIntegrationTest {
                 .getSingleResult()).longValue();
         assertEquals(0L, cantidadBoosts, "No deberia haberse creado ningun boost para el usuario gratuito");
     }
+    @Test
+    void activarSegundoBoostMientrasHayUnoActivoDeberiaSerRechazado() {
+        Long usuarioId = crearUsuarioRegistrado("premiumdobleboost@integracion.com");
+
+        UpgradeRequest upgradeRequest = new UpgradeRequest();
+        upgradeRequest.setPlan("PREMIUM_MENSUAL");
+        upgradeRequest.setReciboStore("recibo-doble-boost");
+        premiumService.upgradePremium(usuarioId, upgradeRequest);
+
+        premiumService.activarBoost(usuarioId);
+
+        assertThrows(RuntimeException.class, () -> {
+            premiumService.activarBoost(usuarioId);
+        }, "No deberia poder activar un segundo boost mientras el primero sigue activo");
+
+        Long cantidadBoosts = ((Number) entityManager.createNativeQuery(
+                        "SELECT COUNT(*) FROM BOOST_HISTORIAL WHERE usuario_id = :userId")
+                .setParameter("userId", usuarioId)
+                .getSingleResult()).longValue();
+        assertEquals(1L, cantidadBoosts, "Solo deberia existir 1 boost, el segundo intento no debio insertarse");
+    }
+    @Test
+    void activarBoostDeberiaRespetarLimiteSemanalDeUnoParaMensual() {
+        Long usuarioId = crearUsuarioRegistrado("premiumlimitesemanal@integracion.com");
+
+        UpgradeRequest upgradeRequest = new UpgradeRequest();
+        upgradeRequest.setPlan("PREMIUM_MENSUAL");
+        upgradeRequest.setReciboStore("recibo-limite-semanal");
+        premiumService.upgradePremium(usuarioId, upgradeRequest);
+
+        premiumService.activarBoost(usuarioId);
+
+        entityManager.createNativeQuery(
+                        "UPDATE BOOST_HISTORIAL SET activo = 0, fecha_fin = NOW() - INTERVAL '1 minute' " +
+                                "WHERE usuario_id = :userId")
+                .setParameter("userId", usuarioId)
+                .executeUpdate();
+        entityManager.clear();
+
+        assertThrows(RuntimeException.class, () -> {
+            premiumService.activarBoost(usuarioId);
+        }, "No deberia poder activar un segundo boost la misma semana con plan mensual (limite=1)");
+
+        Long cantidadBoosts = ((Number) entityManager.createNativeQuery(
+                        "SELECT COUNT(*) FROM BOOST_HISTORIAL WHERE usuario_id = :userId")
+                .setParameter("userId", usuarioId)
+                .getSingleResult()).longValue();
+        assertEquals(1L, cantidadBoosts, "Solo deberia existir 1 boost, el limite semanal impidio el segundo");
+    }
+    @Test
+    void obtenerSuscripcionDeberiaDegradarAutomaticamenteSiVencio() {
+        Long usuarioId = crearUsuarioRegistrado("premiumvencido@integracion.com");
+
+        UpgradeRequest upgradeRequest = new UpgradeRequest();
+        upgradeRequest.setPlan("PREMIUM_MENSUAL");
+        upgradeRequest.setReciboStore("recibo-vencido");
+        premiumService.upgradePremium(usuarioId, upgradeRequest);
+
+        entityManager.createNativeQuery(
+                        "UPDATE SUSCRIPCION SET fecha_fin = NOW() - INTERVAL '1 day' " +
+                                "WHERE usuario_id = :userId AND activo = 1")
+                .setParameter("userId", usuarioId)
+                .executeUpdate();
+        entityManager.clear();
+
+        SuscripcionResponse respuesta = premiumService.obtenerSuscripcion(usuarioId);
+
+        assertEquals("GRATUITO", respuesta.getPlan(), "El plan deberia degradarse a GRATUITO al estar vencido");
+        assertFalse(respuesta.getEsPremium(), "No deberia seguir siendo premium");
+
+        String rolEnBD = (String) entityManager.createNativeQuery(
+                        "SELECT rol FROM USUARIO WHERE usuario_id = :userId")
+                .setParameter("userId", usuarioId)
+                .getSingleResult();
+        assertEquals("USER", rolEnBD, "El rol deberia volver a USER tras la degradacion");
+
+        Long cantidadSuscripcionesActivas = ((Number) entityManager.createNativeQuery(
+                        "SELECT COUNT(*) FROM SUSCRIPCION WHERE usuario_id = :userId AND activo = 1")
+                .setParameter("userId", usuarioId)
+                .getSingleResult()).longValue();
+        assertEquals(1L, cantidadSuscripcionesActivas,
+                "Deberia existir exactamente 1 suscripcion activa (la nueva GRATUITO)");
+
+        String planActivoEnBD = (String) entityManager.createNativeQuery(
+                        "SELECT plan FROM SUSCRIPCION WHERE usuario_id = :userId AND activo = 1")
+                .setParameter("userId", usuarioId)
+                .getSingleResult();
+        assertEquals("GRATUITO", planActivoEnBD, "La suscripcion activa deberia ser GRATUITO");
+    }
 }
