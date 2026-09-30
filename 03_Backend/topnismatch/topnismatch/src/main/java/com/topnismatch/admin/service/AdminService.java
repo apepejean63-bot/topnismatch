@@ -181,13 +181,13 @@ public class AdminService {
                 .executeUpdate();
 
         if (Boolean.TRUE.equals(request.getBloquearUsuario())) {
-            List<Object[]> reporte = entityManager.createNativeQuery(
+            List<Object> reporte = entityManager.createNativeQuery(
                             "SELECT usuario_denunciado FROM REPORTE WHERE reporte_id = :id")
                     .setParameter("id", reporteId)
                     .getResultList();
 
             if (!reporte.isEmpty()) {
-                Long usuarioBloqueado = ((Number) ((Object[]) reporte.get(0))[0]).longValue();
+                Long usuarioBloqueado = ((Number) reporte.get(0)).longValue();
                 entityManager.createNativeQuery(
                                 "UPDATE USUARIO SET activo = 0 WHERE usuario_id = :userId")
                         .setParameter("userId", usuarioBloqueado)
