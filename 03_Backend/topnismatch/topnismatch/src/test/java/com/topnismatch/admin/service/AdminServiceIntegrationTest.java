@@ -225,4 +225,22 @@ class AdminServiceIntegrationTest {
         assertEquals(usuarioAdmin.toString(), adminResolutorEnBD,
                 "El admin resolutor deberia quedar registrado en el reporte");
     }
+    @Test
+    void listarReportesConEstadoMaliciosoNoDeberiaAlterarLaConsulta() {
+        Long usuarioA = crearUsuarioRegistrado("adminseguridada@integracion.com");
+        Long usuarioB = crearUsuarioRegistrado("adminseguridadb@integracion.com");
+
+        BlockReportRequest reportRequest = new BlockReportRequest();
+        reportRequest.setCategoria("SPAM");
+        reportRequest.setDescripcion("Reporte para prueba de seguridad");
+        chatService.reportarUsuario(usuarioA, usuarioB, reportRequest);
+
+        String payloadMalicioso = "PENDIENTE' OR '1'='1";
+
+        List<AdminReportResponse> resultado = adminService.listarReportes(payloadMalicioso);
+
+        assertTrue(resultado.isEmpty(),
+                "Un estado que no existe literalmente no deberia devolver ningun reporte, " +
+                "incluso si el texto contiene una condicion SQL como OR '1'='1'");
+    }
 }

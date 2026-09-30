@@ -3,6 +3,7 @@ package com.topnismatch.admin.service;
 import com.topnismatch.admin.dto.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -135,13 +136,19 @@ public class AdminService {
                 "JOIN USUARIO u1 ON r.usuario_denunciante = u1.usuario_id " +
                 "JOIN USUARIO u2 ON r.usuario_denunciado = u2.usuario_id ";
 
-        if (estado != null && !estado.isEmpty()) {
-            sql += "WHERE r.estado = '" + estado + "' ";
+        boolean filtrarPorEstado = estado != null && !estado.isEmpty();
+        if (filtrarPorEstado) {
+            sql += "WHERE r.estado = :estado ";
         }
 
         sql += "ORDER BY r.fecha_reporte DESC";
 
-        List<Object[]> resultados = entityManager.createNativeQuery(sql).getResultList();
+        Query nativeQuery = entityManager.createNativeQuery(sql);
+        if (filtrarPorEstado) {
+            nativeQuery.setParameter("estado", estado);
+        }
+
+        List<Object[]> resultados = nativeQuery.getResultList();
         List<AdminReportResponse> reportes = new ArrayList<>();
 
         for (Object[] row : resultados) {
