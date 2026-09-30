@@ -20,6 +20,15 @@ public class SwipeService {
     @SuppressWarnings("unchecked")
     public List<DiscoverResponse> discover(Long usuarioId) {
 
+        Long tienePerfil = ((Number) entityManager.createNativeQuery(
+                        "SELECT COUNT(*) FROM PERFIL WHERE usuario_id = :userId")
+                .setParameter("userId", usuarioId)
+                .getSingleResult()).longValue();
+
+        if (tienePerfil == 0) {
+            throw new RuntimeException("Completa tu perfil antes de comenzar a descubrir personas");
+        }
+
         List<Object[]> prefList = entityManager.createNativeQuery(
                         "SELECT p.edad_min_buscada, p.edad_max_buscada, p.genero_buscado, " +
                                 "p.distancia_max_km FROM PERFIL p WHERE p.usuario_id = :userId")
