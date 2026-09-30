@@ -10,6 +10,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: 03_Backend/topnismatch/topnismatch
+
     steps:
       - name: Checkout del codigo
         uses: actions/checkout@v4
@@ -29,5 +33,5 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: Resultados de Tests
-          path: target/surefire-reports/*.xml
+          path: 03_Backend/topnismatch/topnismatch/target/surefire-reports/*.xml
           reporter: java-junit
