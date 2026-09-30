@@ -4,6 +4,8 @@ import com.topnismatch.auth.dto.AuthResponse;
 import com.topnismatch.auth.dto.RegisterRequest;
 import com.topnismatch.auth.service.AuthService;
 import com.topnismatch.premium.dto.BoostResponse;
+import com.topnismatch.premium.dto.NotifConfigRequest;
+import com.topnismatch.premium.dto.NotifConfigResponse;
 import com.topnismatch.premium.dto.SuscripcionResponse;
 import com.topnismatch.premium.dto.UpgradeRequest;
 import jakarta.persistence.EntityManager;
@@ -214,5 +216,26 @@ class PremiumServiceIntegrationTest {
                 .setParameter("userId", usuarioId)
                 .getSingleResult();
         assertEquals("GRATUITO", planActivoEnBD, "La suscripcion activa deberia ser GRATUITO");
+    }
+    @Test
+    void actualizarConfigNotifConComillaSimpleDeberiaGuardarseComoDatoLiteral() {
+        Long usuarioId = crearUsuarioRegistrado("premiumnotifseguridad@integracion.com");
+
+        String valorConComilla = "12'34";
+
+        NotifConfigRequest request = new NotifConfigRequest();
+        request.setSilencioInicio(valorConComilla);
+
+        NotifConfigResponse respuesta = premiumService.actualizarConfigNotif(usuarioId, request);
+
+        assertEquals(valorConComilla, respuesta.getSilencioInicio(),
+                "El valor con comilla simple deberia guardarse exactamente tal cual, como dato literal");
+
+        String valorEnBD = (String) entityManager.createNativeQuery(
+                        "SELECT silencio_inicio FROM NOTIF_PREFERENCIAS WHERE usuario_id = :userId")
+                .setParameter("userId", usuarioId)
+                .getSingleResult();
+        assertEquals(valorConComilla, valorEnBD,
+                "El valor en la base de datos deberia coincidir exactamente con el enviado");
     }
 }

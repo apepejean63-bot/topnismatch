@@ -3,6 +3,7 @@ package com.topnismatch.premium.service;
 import com.topnismatch.premium.dto.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -229,19 +230,26 @@ public class PremiumService {
         }
         if (request.getSilencioInicio() != null) {
             if (!first) sql.append(", ");
-            sql.append("silencio_inicio = '").append(request.getSilencioInicio()).append("'");
+            sql.append("silencio_inicio = :silencioInicio");
             first = false;
         }
         if (request.getSilencioFin() != null) {
             if (!first) sql.append(", ");
-            sql.append("silencio_fin = '").append(request.getSilencioFin()).append("'");
+            sql.append("silencio_fin = :silencioFin");
         }
 
         sql.append(" WHERE usuario_id = :userId");
 
-        entityManager.createNativeQuery(sql.toString())
-                .setParameter("userId", usuarioId)
-                .executeUpdate();
+        Query query = entityManager.createNativeQuery(sql.toString());
+
+        if (request.getSilencioInicio() != null) {
+            query.setParameter("silencioInicio", request.getSilencioInicio());
+        }
+        if (request.getSilencioFin() != null) {
+            query.setParameter("silencioFin", request.getSilencioFin());
+        }
+        query.setParameter("userId", usuarioId);
+        query.executeUpdate();
 
         return obtenerConfigNotif(usuarioId);
     }
