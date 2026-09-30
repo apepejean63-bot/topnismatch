@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
@@ -38,6 +39,16 @@ class _HomeScreenState extends State<HomeScreen>
       });
     } catch (e) {
       setState(() => _isLoading = false);
+
+      if (e is DioException) {
+        final mensaje = e.response?.data?['mensaje']?.toString() ?? '';
+        if (mensaje.contains('Completa tu perfil')) {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/create-profile');
+          }
+          return;
+        }
+      }
     }
   }
 
