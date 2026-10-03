@@ -1,9 +1,20 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
+
+enum _EstadoUbicacion {
+  pendiente,
+  solicitando,
+  lista,
+  rechazada,
+  rechazadaSiempre,
+  servicioApagado,
+  error,
+}
 
 class CreateProfileScreen extends StatefulWidget {
   const CreateProfileScreen({super.key});
@@ -24,6 +35,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   double _edadMax = 40;
   double _distancia = 30;
   File? _selectedImage;
+
+  _EstadoUbicacion _estadoUbicacion = _EstadoUbicacion.pendiente;
+  Position? _posicion;
 
   static const List<String> _palabrasProhibidas = [
     'telegram', 'whatsapp', 'onlyfans', 'sexo', 'dinero',
@@ -75,67 +89,66 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     }
   }
 
-  // TEMPORAL - solo para la etapa #3B (verificar que la ubicacion funciona).
-  // No se usa todavia en _crearPerfil(); se quitara el SnackBar de debug
-  // cuando se integre con el backend en #3C/#3D.
-  Future<Position?> _obtenerUbicacion() async {
+  // Siempre vuelve a comprobar servicio -> permiso -> posicion desde cero.
+  // No asume que un "Reintentar" tras volver de Configuracion ya solucionó nada.
+  Future<void> _solicitarUbicacion() async {
+    if (_estadoUbicacion == _EstadoUbicacion.solicitando) return;
+
+    setState(() {
+      _estadoUbicacion = _EstadoUbicacion.solicitando;
+      _posicion = null;
+    });
+
     try {
-      bool servicioActivado = await Geolocator.isLocationServiceEnabled();
+      final servicioActivado = await Geolocator.isLocationServiceEnabled();
       if (!servicioActivado) {
-        debugPrint('Ubicacion: servicio de ubicacion desactivado en el dispositivo');
-        return null;
+        if (mounted) setState(() => _estadoUbicacion = _EstadoUbicacion.servicioApagado);
+        return;
       }
 
       LocationPermission permiso = await Geolocator.checkPermission();
       if (permiso == LocationPermission.denied) {
         permiso = await Geolocator.requestPermission();
-        if (permiso == LocationPermission.denied) {
-          debugPrint('Ubicacion: permiso denegado por el usuario');
-          return null;
-        }
       }
 
       if (permiso == LocationPermission.deniedForever) {
-        debugPrint('Ubicacion: permiso denegado permanentemente');
-        return null;
+        if (mounted) setState(() => _estadoUbicacion = _EstadoUbicacion.rechazadaSiempre);
+        return;
+      }
+
+      if (permiso == LocationPermission.denied) {
+        if (mounted) setState(() => _estadoUbicacion = _EstadoUbicacion.rechazada);
+        return;
       }
 
       final posicion = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
-      );
-      debugPrint('Ubicacion obtenida: ${posicion.latitude}, ${posicion.longitude}');
-      return posicion;
-    } catch (e) {
-      debugPrint('Ubicacion: error al obtener posicion: $e');
-      return null;
-    }
-  }
+      ).timeout(const Duration(seconds: 10));
 
-  // TEMPORAL - boton de prueba solo para #3B, se quitara despues.
-  Future<void> _probarUbicacion() async {
-    final posicion = await _obtenerUbicacion();
-    if (!mounted) return;
-    if (posicion != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Ubicacion obtenida: ${posicion.latitude.toStringAsFixed(4)}, ${posicion.longitude.toStringAsFixed(4)}',
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo obtener la ubicacion (revisa permisos/GPS)'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      if (!mounted) return;
+      setState(() {
+        _posicion = posicion;
+        _estadoUbicacion = _EstadoUbicacion.lista;
+      });
+    } on TimeoutException {
+      if (mounted) setState(() => _estadoUbicacion = _EstadoUbicacion.error);
+    } catch (e) {
+      if (mounted) setState(() => _estadoUbicacion = _EstadoUbicacion.error);
     }
   }
 
   Future<void> _crearPerfil() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_posicion == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Necesitamos tu ubicaci\u00F3n para crear tu perfil'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
     try {
@@ -154,6 +167,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         'edadMaxBuscada': _edadMax.toInt(),
         'distanciaMaxKm': _distancia.toInt(),
         'generoBuscado': _generoBuscado,
+        'latitud': _posicion!.latitude,
+        'longitud': _posicion!.longitude,
         if (fotoUrl != null) 'fotoPrincipalUrl': fotoUrl,
       });
 
@@ -169,6 +184,102 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       }
     }
     setState(() => _isLoading = false);
+  }
+
+  Widget _buildBannerUbicacion() {
+    IconData icono;
+    Color color;
+    String titulo;
+    String? textoBoton;
+    VoidCallback? accionBoton;
+
+    switch (_estadoUbicacion) {
+      case _EstadoUbicacion.pendiente:
+        icono = Icons.location_on_outlined;
+        color = Colors.blueGrey;
+        titulo = 'Necesitamos tu ubicaci\u00F3n para mostrarte personas cercanas';
+        textoBoton = 'Permitir ubicaci\u00F3n';
+        accionBoton = _solicitarUbicacion;
+        break;
+      case _EstadoUbicacion.solicitando:
+        icono = Icons.location_searching;
+        color = Colors.blueGrey;
+        titulo = 'Obteniendo tu ubicaci\u00F3n...';
+        textoBoton = null;
+        accionBoton = null;
+        break;
+      case _EstadoUbicacion.lista:
+        icono = Icons.check_circle;
+        color = Colors.green;
+        titulo = 'Ubicaci\u00F3n lista \u2713';
+        textoBoton = null;
+        accionBoton = null;
+        break;
+      case _EstadoUbicacion.rechazada:
+        icono = Icons.location_off;
+        color = Colors.orange;
+        titulo = 'Sin ubicaci\u00F3n no podr\u00E1s usar Descubrir';
+        textoBoton = 'Reintentar';
+        accionBoton = _solicitarUbicacion;
+        break;
+      case _EstadoUbicacion.rechazadaSiempre:
+        icono = Icons.location_off;
+        color = Colors.red;
+        titulo = 'Habilita el permiso de ubicaci\u00F3n en Configuraci\u00F3n';
+        textoBoton = 'Abrir configuraci\u00F3n';
+        accionBoton = () async {
+          await Geolocator.openAppSettings();
+        };
+        break;
+      case _EstadoUbicacion.servicioApagado:
+        icono = Icons.location_disabled;
+        color = Colors.red;
+        titulo = 'Activa la ubicaci\u00F3n de tu tel\u00E9fono';
+        textoBoton = 'Activar ubicaci\u00F3n';
+        accionBoton = () async {
+          await Geolocator.openLocationSettings();
+        };
+        break;
+      case _EstadoUbicacion.error:
+        icono = Icons.error_outline;
+        color = Colors.red;
+        titulo = 'No pudimos obtener tu ubicaci\u00F3n';
+        textoBoton = 'Reintentar';
+        accionBoton = _solicitarUbicacion;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Row(
+        children: [
+          Icon(icono, color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              titulo,
+              style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+          ),
+          if (textoBoton != null)
+            TextButton(
+              onPressed: accionBoton,
+              child: Text(textoBoton, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+            ),
+          if (_estadoUbicacion == _EstadoUbicacion.solicitando)
+            SizedBox(
+              width: 18, height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2, color: color),
+            ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -206,16 +317,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       icon: const Icon(Icons.camera_alt, color: Colors.white),
                       label: const Text('Agregar foto', style: TextStyle(color: Colors.white)),
                     ),
-                    const SizedBox(height: 8),
-                    OutlinedButton.icon(
-                      onPressed: _probarUbicacion,
-                      icon: const Icon(Icons.my_location),
-                      label: const Text('Probar ubicacion (temporal #3B)'),
-                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
+
+              _buildBannerUbicacion(),
 
               // Bio
               TextFormField(
