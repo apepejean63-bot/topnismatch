@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 
@@ -71,6 +72,65 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           SnackBar(content: Text('Error: $e')),
         );
       }
+    }
+  }
+
+  // TEMPORAL - solo para la etapa #3B (verificar que la ubicacion funciona).
+  // No se usa todavia en _crearPerfil(); se quitara el SnackBar de debug
+  // cuando se integre con el backend en #3C/#3D.
+  Future<Position?> _obtenerUbicacion() async {
+    try {
+      bool servicioActivado = await Geolocator.isLocationServiceEnabled();
+      if (!servicioActivado) {
+        debugPrint('Ubicacion: servicio de ubicacion desactivado en el dispositivo');
+        return null;
+      }
+
+      LocationPermission permiso = await Geolocator.checkPermission();
+      if (permiso == LocationPermission.denied) {
+        permiso = await Geolocator.requestPermission();
+        if (permiso == LocationPermission.denied) {
+          debugPrint('Ubicacion: permiso denegado por el usuario');
+          return null;
+        }
+      }
+
+      if (permiso == LocationPermission.deniedForever) {
+        debugPrint('Ubicacion: permiso denegado permanentemente');
+        return null;
+      }
+
+      final posicion = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
+      );
+      debugPrint('Ubicacion obtenida: ${posicion.latitude}, ${posicion.longitude}');
+      return posicion;
+    } catch (e) {
+      debugPrint('Ubicacion: error al obtener posicion: $e');
+      return null;
+    }
+  }
+
+  // TEMPORAL - boton de prueba solo para #3B, se quitara despues.
+  Future<void> _probarUbicacion() async {
+    final posicion = await _obtenerUbicacion();
+    if (!mounted) return;
+    if (posicion != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Ubicacion obtenida: ${posicion.latitude.toStringAsFixed(4)}, ${posicion.longitude.toStringAsFixed(4)}',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo obtener la ubicacion (revisa permisos/GPS)'),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
@@ -145,6 +205,12 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4458)),
                       icon: const Icon(Icons.camera_alt, color: Colors.white),
                       label: const Text('Agregar foto', style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: _probarUbicacion,
+                      icon: const Icon(Icons.my_location),
+                      label: const Text('Probar ubicacion (temporal #3B)'),
                     ),
                   ],
                 ),
