@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,12 @@ public class ProfileService {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    private void validarCoordenadas(BigDecimal lat, BigDecimal lon) {
+        if ((lat == null) != (lon == null)) {
+            throw new RuntimeException("Latitud y longitud deben enviarse juntas");
+        }
+    }
 
     @Transactional
     public ProfileResponse crearPerfil(Long usuarioId, ProfileRequest request) {
@@ -31,6 +38,8 @@ public class ProfileService {
             throw new RuntimeException("El usuario ya tiene un perfil creado");
         }
 
+        validarCoordenadas(request.getLatitud(), request.getLongitud());
+
         Perfil perfil = Perfil.builder()
                 .usuarioId(usuarioId)
                 .bio(request.getBio())
@@ -41,6 +50,8 @@ public class ProfileService {
                 .edadMaxBuscada(request.getEdadMaxBuscada() != null ? request.getEdadMaxBuscada() : 99)
                 .distanciaMaxKm(request.getDistanciaMaxKm() != null ? request.getDistanciaMaxKm() : 50)
                 .generoBuscado(request.getGeneroBuscado())
+                .latitud(request.getLatitud())
+                .longitud(request.getLongitud())
                 .fechaNacimiento(entityManager.createNativeQuery("SELECT TO_CHAR(fecha_nacimiento, 'YYYY-MM-DD') FROM USUARIO WHERE usuario_id = :userId").setParameter("userId", usuarioId).getSingleResult().toString())
                 .build();
 
@@ -68,6 +79,8 @@ public class ProfileService {
     @Transactional
     public ProfileResponse editarPerfil(Long usuarioId, ProfileRequest request) {
         if (request.getBio() != null) validarBio(request.getBio());
+
+        validarCoordenadas(request.getLatitud(), request.getLongitud());
 
         List<Perfil> perfiles = entityManager.createQuery(
                         "SELECT p FROM Perfil p WHERE p.usuarioId = :userId",
@@ -101,6 +114,8 @@ public class ProfileService {
         if (request.getReligion() != null) perfil.setReligion(request.getReligion());
         if (request.getObjetivo() != null) perfil.setObjetivo(request.getObjetivo());
         if (request.getFechaNacimiento() != null) perfil.setFechaNacimiento(request.getFechaNacimiento());
+        if (request.getLatitud() != null) perfil.setLatitud(request.getLatitud());
+        if (request.getLongitud() != null) perfil.setLongitud(request.getLongitud());
         if (request.getFotoPrincipalUrl() != null) {
             List<Foto> fotosExistentes = entityManager.createQuery("SELECT f FROM Foto f WHERE f.usuarioId = :userId AND f.orden = 1", Foto.class).setParameter("userId", usuarioId).getResultList();
             if (!fotosExistentes.isEmpty()) {
@@ -282,5 +297,3 @@ public class ProfileService {
                 .build();
     }
 }
-
-

@@ -3,6 +3,8 @@ package com.topnismatch.profile.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -73,4 +75,12 @@ public class ProfileRequest {
 
     private String fechaNacimiento;
     private String fotoPrincipalUrl;
+
+    @DecimalMin(value = "-90.0", message = "Latitud invalida")
+    @DecimalMax(value = "90.0", message = "Latitud invalida")
+    private BigDecimal latitud;
+
+    @DecimalMin(value = "-180.0", message = "Longitud invalida")
+    @DecimalMax(value = "180.0", message = "Longitud invalida")
+    private BigDecimal longitud;
 }
