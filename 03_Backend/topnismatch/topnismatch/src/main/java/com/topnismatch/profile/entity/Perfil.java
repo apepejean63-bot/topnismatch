@@ -51,6 +51,12 @@ public class Perfil {
     @Column(name = "genero_buscado", length = 20)
     private String generoBuscado;
 
+    @Column(name = "latitud", precision = 6, scale = 3)
+    private java.math.BigDecimal latitud;
+
+    @Column(name = "longitud", precision = 6, scale = 3)
+    private java.math.BigDecimal longitud;
+
     @Column(name = "foto_principal_id")
     private Long fotoPrincipalId;
 

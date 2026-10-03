@@ -89,6 +89,8 @@ CREATE TABLE PERFIL (
     edad_max_buscada    INTEGER NOT NULL DEFAULT 99 CHECK (edad_max_buscada <= 99),
     distancia_max_km    INTEGER NOT NULL DEFAULT 50,
     genero_buscado      VARCHAR(20),
+    latitud             DECIMAL(6,3),
+    longitud            DECIMAL(6,3),
     foto_principal_id   BIGINT REFERENCES FOTO(foto_id),
     fecha_actualizacion TIMESTAMP DEFAULT NOW()
 );
