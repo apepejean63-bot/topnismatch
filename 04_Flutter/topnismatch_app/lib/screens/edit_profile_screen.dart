@@ -132,7 +132,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               try {
                 Map<String, dynamic> data = {};
                 if (titulo == 'Sobre m\u00ED') data['bio'] = controller.text.trim();
-                if (titulo == 'Ciudad') data['ciudad'] = controller.text.trim();
                 if (titulo == 'Profesi\u00F3n') data['profesion'] = controller.text.trim();
                 if (titulo == 'Educaci\u00F3n') data['educacion'] = controller.text.trim();
                 if (titulo == 'Idioma') data['idioma'] = controller.text.trim();
