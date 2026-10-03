@@ -24,6 +24,7 @@ dependencies:
   permission_handler: ^11.3.1
   font_awesome_flutter: ^10.7.0
   geolocator: ^14.0.2
+  geocoding: ^5.0.0
 
 dev_dependencies:
   flutter_test:

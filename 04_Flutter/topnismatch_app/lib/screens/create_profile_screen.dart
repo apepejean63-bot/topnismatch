@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 
@@ -26,7 +27,6 @@ class CreateProfileScreen extends StatefulWidget {
 class _CreateProfileScreenState extends State<CreateProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _bioController = TextEditingController();
-  final _ciudadController = TextEditingController();
   final _interesesController = TextEditingController();
   final ApiService _api = ApiService();
   bool _isLoading = false;
@@ -38,6 +38,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   _EstadoUbicacion _estadoUbicacion = _EstadoUbicacion.pendiente;
   Position? _posicion;
+  String? _ciudadDetectada;
 
   static const List<String> _palabrasProhibidas = [
     'telegram', 'whatsapp', 'onlyfans', 'sexo', 'dinero',
@@ -48,7 +49,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   @override
   void dispose() {
     _bioController.dispose();
-    _ciudadController.dispose();
     _interesesController.dispose();
     super.dispose();
   }
@@ -60,13 +60,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     for (final palabra in _palabrasProhibidas) {
       if (bioLower.contains(palabra)) return 'La bio contiene contenido no permitido';
     }
-    return null;
-  }
-
-  String? _validarCiudad(String? value) {
-    if (value == null || value.trim().isEmpty) return 'La ciudad es obligatoria';
-    if (value.trim().length < 2) return 'M\u00EDnimo 2 caracteres';
-    if (value.trim().length > 100) return 'M\u00E1ximo 100 caracteres';
     return null;
   }
 
@@ -89,14 +82,44 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     }
   }
 
-  // Siempre vuelve a comprobar servicio -> permiso -> posicion desde cero.
-  // No asume que un "Reintentar" tras volver de Configuracion ya solucionó nada.
+  // Arma un nombre de ubicacion legible a partir de un Placemark, ignorando
+  // componentes nulos, vacios o repetidos. No asume que 'locality' siempre
+  // sea una comuna: usa los valores tal como los devuelve el geocoder.
+  String? _construirNombreUbicacion(Placemark placemark) {
+    final candidatos = <String?>[
+      placemark.locality,
+      placemark.subAdministrativeArea,
+      placemark.administrativeArea,
+    ];
+
+    String? principal;
+    for (final candidato in candidatos) {
+      if (candidato != null && candidato.trim().isNotEmpty) {
+        principal = candidato.trim();
+        break;
+      }
+    }
+
+    final pais = placemark.country?.trim();
+
+    final partes = <String>[];
+    if (principal != null && principal.isNotEmpty) partes.add(principal);
+    if (pais != null && pais.isNotEmpty && pais != principal) partes.add(pais);
+
+    if (partes.isEmpty) return null;
+    return partes.join(', ');
+  }
+
+  // Siempre vuelve a comprobar servicio -> permiso -> posicion -> geocoding
+  // desde cero. No asume que un "Reintentar" tras volver de Configuracion
+  // ya solucionÃ³ nada.
   Future<void> _solicitarUbicacion() async {
     if (_estadoUbicacion == _EstadoUbicacion.solicitando) return;
 
     setState(() {
       _estadoUbicacion = _EstadoUbicacion.solicitando;
       _posicion = null;
+      _ciudadDetectada = null;
     });
 
     try {
@@ -125,9 +148,27 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
       ).timeout(const Duration(seconds: 10));
 
+      // La Position es el dato critico. Si el reverse geocoding falla,
+      // igualmente consideramos la ubicacion "lista" y no bloqueamos
+      // la creacion del perfil; _ciudadDetectada simplemente queda null.
+      String? nombreUbicacion;
+      try {
+        final geocoder = Geocoding();
+        final placemarks = await geocoder.placemarkFromCoordinates(
+          posicion.latitude,
+          posicion.longitude,
+        ).timeout(const Duration(seconds: 10));
+        if (placemarks.isNotEmpty) {
+          nombreUbicacion = _construirNombreUbicacion(placemarks.first);
+        }
+      } catch (_) {
+        nombreUbicacion = null;
+      }
+
       if (!mounted) return;
       setState(() {
         _posicion = posicion;
+        _ciudadDetectada = nombreUbicacion;
         _estadoUbicacion = _EstadoUbicacion.lista;
       });
     } on TimeoutException {
@@ -161,7 +202,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
       await _api.crearPerfil({
         'bio': _bioController.text.trim(),
-        'ciudad': _ciudadController.text.trim(),
+        'ciudad': _ciudadDetectada,
         'intereses': _interesesController.text.trim(),
         'edadMinBuscada': _edadMin.toInt(),
         'edadMaxBuscada': _edadMax.toInt(),
@@ -211,7 +252,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       case _EstadoUbicacion.lista:
         icono = Icons.check_circle;
         color = Colors.green;
-        titulo = 'Ubicaci\u00F3n lista \u2713';
+        titulo = _ciudadDetectada != null
+            ? '\u{1F4CD} $_ciudadDetectada'
+            : 'Ubicaci\u00F3n lista \u2713';
         textoBoton = null;
         accionBoton = null;
         break;
@@ -334,14 +377,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                   hintText: 'Cu\u00E9ntanos sobre ti...',
                   labelText: 'Bio',
                 ),
-              ),
-              const SizedBox(height: 16),
-
-              // Ciudad
-              TextFormField(
-                controller: _ciudadController,
-                validator: _validarCiudad,
-                decoration: _inputDecoration('Ciudad', Icons.location_on),
               ),
               const SizedBox(height: 16),
 
