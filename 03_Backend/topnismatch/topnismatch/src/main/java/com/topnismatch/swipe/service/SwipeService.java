@@ -245,28 +245,10 @@ public class SwipeService {
                 .setParameter("userId", usuario2)
                 .getResultList();
 
-        if (intereses1.isEmpty() || intereses2.isEmpty()) return 50.0;
+        String i1 = intereses1.isEmpty() ? null : intereses1.get(0);
+        String i2 = intereses2.isEmpty() ? null : intereses2.get(0);
 
-        String i1 = intereses1.get(0);
-        String i2 = intereses2.get(0);
-
-        if (i1 == null || i2 == null) return 50.0;
-
-        String[] arr1 = i1.split(",");
-        String[] arr2 = i2.split(",");
-
-        int comunes = 0;
-        for (String a : arr1) {
-            for (String b : arr2) {
-                if (a.trim().equalsIgnoreCase(b.trim())) comunes++;
-            }
-        }
-
-        int total = arr1.length + arr2.length;
-        if (total == 0) return 50.0;
-
-        double compatibilidad = (double) comunes * 2 / total * 100;
-        return Math.min(100.0, Math.max(0.0, compatibilidad));
+        return InteresesUtil.compatibilidad(i1, i2);
     }
 
     private int calcularEdad(java.util.Date fechaNacimiento) {
